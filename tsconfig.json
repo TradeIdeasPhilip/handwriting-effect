@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    // The following will allow private readonly in constructors.
+    // Without this I was getting
+    // node_modules/phil-lib/client-misc.ts:250:15 - error TS1294: This syntax is not allowed when 'erasableSyntaxOnly' is enabled.
+    // 250   constructor(private readonly onWake: (time: DOMHighResTimeStamp) => void) {
+    "isolatedModules": false,
+    "outDir": "./dist",
+    "types": ["vite/client"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}
