@@ -9,7 +9,74 @@
   </head>
   <body>
     <h1>Handwriting Effect</h1>
+    <p>
+      <a
+        href="https://github.com/TradeIdeasPhilip/handwriting-effect?tab=readme-ov-file#handwriting-effect"
+        >Help & about</a
+      >.
+    </p>
     <button id="createVideo">Create Video</button>
+    <h2>Configure</h2>
+    <div class="radio-group input">
+      <span>Font&nbsp;Family:</span>
+      <label
+        ><input type="radio" name="fontFamily" value="standard" checked />
+        Standard</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="fontFamily"
+          value="Hershey Script"
+        />&nbsp;Hershey&nbsp;Script</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="fontFamily"
+          value="Hershey Other"
+        />&nbsp;Hershey&nbsp;Other</label
+      >
+    </div>
+    <div class="input">Font Size: <input id="fontSize" value="16" />px</div>
+    <div class="input">
+      Stroke Width: <input id="lineWidth" value="1" />px
+      <button id="recommededLineWidth">Recommended: 1.00023px</button>
+    </div>
+    <div class="input">Color: <input id="strokeColor" type="color" /></div>
+    <div class="input">Duration: <input id="duration" value="5000" />ms</div>
+    <div class="radio-group input">
+      <span>Alignment:</span>
+      <label
+        ><input type="radio" name="alignment" value="left" />&nbsp;Left</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="alignment"
+          value="center"
+          checked
+        />&nbsp;Center</label
+      >
+      <label
+        ><input type="radio" name="alignment" value="right" />&nbsp;Right</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="alignment"
+          value="justify"
+        />&nbsp;Justify</label
+      >
+    </div>
+    <div>Text:</div>
+    <textarea id="text" rows="4">
+Like,
+share,
+and
+subscribe.</textarea
+    >
+    <div class="input">Line length: 100.42</div>
     <h2>Preview</h2>
     <canvas id="preview" style="width: 10em"></canvas>
     <h2>Frames</h2>

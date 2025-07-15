@@ -5,16 +5,18 @@ import {
   initializedArray,
   lerp,
   makePromise,
+  parseFloatX,
   zip,
 } from "phil-lib/misc";
 import "./style.css";
-import { getById } from "phil-lib/client-misc";
+import { getById, selectorQuery } from "phil-lib/client-misc";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL } from "@ffmpeg/util";
 
 // https://github.com/ffmpegwasm/ffmpeg.wasm/issues/532#issuecomment-2014126657
 import coreURL from "@ffmpeg/core?url";
 import wasmURL from "@ffmpeg/core/wasm?url";
+import { ParagraphLayout } from "./glib/paragraph-layout";
+import { makeLineFont } from "./glib/line-font";
 
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
@@ -131,3 +133,29 @@ getById("createVideo", HTMLButtonElement).addEventListener(
 
 (window as any).drawAt = drawAt;
 (window as any).showImages = showImages;
+
+const fontSizeInput = getById("fontSize", HTMLInputElement);
+const textTextArea = getById("text", HTMLTextAreaElement);
+const strokeColorInput = getById("strokeColor",HTMLInputElement);
+const lineWidthInput = getById("lineWidth",HTMLInputElement);
+
+function updateSample() {
+  const fontSize = parseFloatX(fontSizeInput.value);
+  if (!fontSize) {
+    throw new Error("wtf");
+  }
+  const font = makeLineFont(fontSize);
+  const layout = new ParagraphLayout(font);
+  layout.addText(textTextArea.value);
+  const alignment = selectorQuery('input[type="radio"][name="alignment"]:checked',HTMLInputElement).value;
+  const width = fontSize * 25;
+  const laidOut = layout.align(width, alignment as any);
+  console.log(laidOut);
+  // todo margin
+  context.strokeStyle = strokeColorInput.value;
+  context.lineWidth = assertNonNullable( parseFloatX( lineWidthInput.value));
+  previewCanvas.width = width;
+  previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom;
+  laidOut.drawAll(context);
+}
+updateSample();
