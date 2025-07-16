@@ -217,30 +217,27 @@ export class ParagraphLayout {
         }
       }
     });
-    function* getAllLetters() {
+    function* getAllLetters(left = 0, top = 0) {
       for (const word of words) {
         for (const letter of word.wordInfo.letters) {
+          const x = left + word.x + letter.x;
+          const baseline = top + word.baseline;
           yield {
-            x: word.x + letter.x,
-            baseline: word.baseline,
+            x,
+            baseline,
             letter: letter.description,
+            translatedShape: letter.description.shape.translate(x, baseline),
             word,
           };
         }
       }
     }
     function drawAll(context: CanvasRenderingContext2D, left = 0, top = 0) {
-      const initialTransform = context.getTransform();
       context.lineCap = "round";
       context.lineJoin = "round";
-      for (const info of getAllLetters()) {
-        const x = info.x + left;
-        const y = info.baseline + top;
-        context.translate(x, y);
-        const path = new Path2D(info.letter.d);
+      for (const info of getAllLetters(left, top)) {
+        const path = new Path2D(info.translatedShape.rawPath);
         context.stroke(path);
-        context.setTransform(initialTransform);
-        // TODO this transform stuff sucks.  Make the change in the path, not here.
       }
     }
     return { width, words, allRowMetrics, getAllLetters, drawAll };

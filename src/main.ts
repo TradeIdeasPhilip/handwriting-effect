@@ -185,14 +185,18 @@ function updateSample() {
   const width = fontSize * 25;
   const laidOut = layout.align(width, alignment as any);
   console.log(font, laidOut);
-  previewCanvas.width = width;
-  previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom;
+  /**
+   * 0.5em
+   */
+  const margin = (font.bottom - font.top) / 2;
+  console.log("margin", margin);
+  previewCanvas.width = width + 2 * margin;
+  previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom + 2 * margin;
   previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
   previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
-  // todo margin : 0.5em
   context.strokeStyle = strokeColorInput.value;
   context.lineWidth = lineWidth;
-  laidOut.drawAll(context);
+  laidOut.drawAll(context, margin, margin);
 }
 updateSample();
 [textTextArea, ...selectorQueryAll("input", HTMLInputElement)].forEach(
