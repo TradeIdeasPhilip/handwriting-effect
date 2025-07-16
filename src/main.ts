@@ -9,14 +9,14 @@ import {
   zip,
 } from "phil-lib/misc";
 import "./style.css";
-import { getById, selectorQuery } from "phil-lib/client-misc";
+import { getById, selectorQuery, selectorQueryAll } from "phil-lib/client-misc";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 
 // https://github.com/ffmpegwasm/ffmpeg.wasm/issues/532#issuecomment-2014126657
 import coreURL from "@ffmpeg/core?url";
 import wasmURL from "@ffmpeg/core/wasm?url";
 import { ParagraphLayout } from "./glib/paragraph-layout";
-import { makeLineFont } from "./glib/line-font";
+import { LineFontMetrics, makeLineFont } from "./glib/line-font";
 
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
@@ -136,26 +136,68 @@ getById("createVideo", HTMLButtonElement).addEventListener(
 
 const fontSizeInput = getById("fontSize", HTMLInputElement);
 const textTextArea = getById("text", HTMLTextAreaElement);
-const strokeColorInput = getById("strokeColor",HTMLInputElement);
-const lineWidthInput = getById("lineWidth",HTMLInputElement);
+const strokeColorInput = getById("strokeColor", HTMLInputElement);
+const lineWidthInput = getById("lineWidth", HTMLInputElement);
+const durationInput = getById("duration", HTMLInputElement);
+const recommendedLineWidthButton = getById(
+  "recommendedLineWidth",
+  HTMLButtonElement
+);
+
+let recommendedLineWidth = NaN;
+
+recommendedLineWidthButton.addEventListener("click", () => {
+  if (Number.isFinite(recommendedLineWidth)) {
+    lineWidthInput.value = recommendedLineWidth.toString();
+    updateSample();
+  }
+});
 
 function updateSample() {
   const fontSize = parseFloatX(fontSizeInput.value);
-  if (!fontSize) {
-    throw new Error("wtf");
+  const lineWidth = parseFloatX(lineWidthInput.value);
+  const duration = parseFloatX(durationInput.value);
+  (
+    [
+      [fontSize, fontSizeInput],
+      [lineWidth, lineWidthInput],
+      [duration, durationInput],
+    ] as const
+  ).forEach(([value, element]) => {
+    element.style.backgroundColor = value === undefined ? "pink" : "";
+  });
+  if (
+    fontSize === undefined ||
+    lineWidth === undefined ||
+    duration === undefined
+  ) {
+    return;
   }
-  const font = makeLineFont(fontSize);
+  recommendedLineWidth = fontSize / 10; //TODO when the font changes, so will this rule.
+  recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
+  const font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
   const layout = new ParagraphLayout(font);
   layout.addText(textTextArea.value);
-  const alignment = selectorQuery('input[type="radio"][name="alignment"]:checked',HTMLInputElement).value;
+  const alignment = selectorQuery(
+    'input[type="radio"][name="alignment"]:checked',
+    HTMLInputElement
+  ).value;
   const width = fontSize * 25;
   const laidOut = layout.align(width, alignment as any);
-  console.log(laidOut);
-  // todo margin
-  context.strokeStyle = strokeColorInput.value;
-  context.lineWidth = assertNonNullable( parseFloatX( lineWidthInput.value));
+  console.log(font, laidOut);
   previewCanvas.width = width;
   previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom;
+  previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
+  previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
+  // todo margin : 0.5em
+  context.strokeStyle = strokeColorInput.value;
+  context.lineWidth = lineWidth;
   laidOut.drawAll(context);
 }
 updateSample();
+[textTextArea, ...selectorQueryAll("input", HTMLInputElement)].forEach(
+  (element) => {
+    element.addEventListener("input", updateSample);
+  }
+);
+(window as any).updateSample = updateSample;

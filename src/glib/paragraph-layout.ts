@@ -231,6 +231,8 @@ export class ParagraphLayout {
     }
     function drawAll(context: CanvasRenderingContext2D, left = 0, top = 0) {
       const initialTransform = context.getTransform();
+      context.lineCap = "round";
+      context.lineJoin = "round";
       for (const info of getAllLetters()) {
         const x = info.x + left;
         const y = info.baseline + top;
