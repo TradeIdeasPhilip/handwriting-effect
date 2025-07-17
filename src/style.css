@@ -58,3 +58,13 @@ textarea#text {
 div.input {
   margin: 0.5em 0;
 }
+
+div.range-holder {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5em;
+}
+
+div.range-holder input[type="range"] {
+  flex-grow: 1;
+}

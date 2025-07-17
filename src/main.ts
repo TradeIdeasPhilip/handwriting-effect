@@ -205,3 +205,97 @@ updateSample();
   }
 );
 (window as any).updateSample = updateSample;
+
+/**
+ * Create or modify the checkerboard pattern behind the canvas.
+ * @param baseColor Both halves of the checkerboard will have a color similar to this.
+ * @param percentChange How close or distant the two colors should be from each other.
+ */
+function updateBackground(baseColor: string, percentChange: number = 10) {
+  const whiterColor = `color-mix(in oklch, ${baseColor} ${
+    100 - percentChange
+  }%, white ${percentChange}%)`;
+  const blackerColor = `color-mix(in oklch, ${baseColor} ${
+    100 - percentChange
+  }%, black ${percentChange}%)`;
+  const checkerboardCanvas = document.createElement("canvas"); // Use document.createElement
+  checkerboardCanvas.width = 2;
+  checkerboardCanvas.height = 2;
+  const checkerboardContext = checkerboardCanvas.getContext("2d")!;
+  checkerboardContext.fillStyle = whiterColor;
+  checkerboardContext.fillRect(0, 0, 2, 2); // Fill entire 2x2 with whiter
+  checkerboardContext.fillStyle = blackerColor;
+  checkerboardContext.fillRect(0, 1, 1, 1); // Bottom-left: blacker
+  checkerboardContext.fillRect(1, 0, 1, 1); // Top-right: blacker
+  const dataUrl = checkerboardCanvas.toDataURL("image/png");
+  previewCanvas.style.background = `url(${dataUrl}) repeat`;
+  previewCanvas.style.backgroundSize = "20px 20px"; // Scale to 10px per square (2x2 pattern)
+  previewCanvas.style.imageRendering = "pixelated"; // Ensure crisp edges
+}
+/**
+ * TODO The color should be read from an html color input.
+ * The other input only changes in code.  TODO tweak it some to see what a good value is.
+ */
+updateBackground("lightgreen", 5);
+
+(window as any).updateBackground = updateBackground;
+
+/**
+ * TODO
+ *
+ * Import the Hershey fonts.
+ * Fix the question marks.
+ *
+ * Make this runnable from the web.
+ * I.e. publish to github pages.
+ *
+ * Multiple layers
+ * - You should be able to add or remove a second layer with a single checkbox.
+ * - It has its own color and width.
+ * - The bottom layer is the optional one.
+ * - The font is generated based on the larger line width.
+ *
+ * The hash in the url needs to record the current state of the screen.
+ * So it's easy to save and share your work.
+ * Generally one property per <input>.
+ * Changing a property will automatically update the hash.
+ * Do I need a delay?  Or can I update the hash immediately?
+ * We read in the values at start, and when the user changes them.
+ *
+ * Animation for handwriting:
+ * Use the slider to draw it at a specific position.
+ * And some way to do a realtime animation.
+ * This animation does not repeat.
+ * In our sample animation, just stop at the end.
+ * When saving this video file, also save the last frame as a png.
+ * CapCut doesn't have any easy way to extend the last frame for an extended period of time.
+ *
+ * Second animation option:
+ *
+ * Animation for dancing lights:
+ * Inputs:  How far apart to put the dots.
+ * How much time for each dot to move to the next position.
+ * That's the time for one cycle, and that's all that we will need to record because it will play in a loop.
+ * Keep this file small because we are in a web app; let the video production software create the loop.
+ * We want to round this to an integer number of frames; maybe use a drop down list?
+ *
+ *
+ * Add a zoom control.
+ * The checkerboard does not resize.
+ * How?
+ * Seems simple, just set the css width and height to the scale factor times the actual size of the canvas.
+ * Snap to some reasonable values.  Maybe an <option> with only predefined values.
+ * Always include pixel perfect as an option.
+ * 100% means one css pixel per real pixel, the default if I didn't specify anything.
+ */
+
+/**
+ * TODO
+ *
+ * The main program should ask for the width and default to infinite.
+ * For testing.
+ * And to make smaller things where I don't have to scroll past the blank parts.
+ * Add a check box, then "wrap at:" and then an input for the width.
+ * Changing the width automatically checks the checkbox.
+ * unchecking the box changes the margin to infinity.
+ */
