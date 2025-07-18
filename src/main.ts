@@ -144,6 +144,56 @@ const recommendedLineWidthButton = getById(
   HTMLButtonElement
 );
 
+const simpleValueElements: Pick<
+  HTMLInputElement,
+  "id" | "value" | "addEventListener"
+>[] = [fontSizeInput, textTextArea, strokeColorInput, lineWidthInput];
+const radioGroups: readonly string[] = ["alignment", "fontFamily"];
+
+function readFromHash() {
+  const parameters = new URLSearchParams(location.hash.substring(1));
+  simpleValueElements.forEach((element) => {
+    const requested = parameters.get(element.id);
+    if (typeof requested === "string") {
+      element.value = requested;
+    }
+  });
+  radioGroups.forEach((name) => {
+    const requested = parameters.get(name);
+    if (typeof requested === "string") {
+      const elements = selectorQueryAll(
+        `input[type="radio"][name="${name}"][value="${requested}"]`,
+        HTMLInputElement
+      );
+      if (elements.length != 1) {
+        console.warn("Expecting 1 radio button", elements, name, requested);
+      } else {
+        elements[0].checked = true;
+      }
+    }
+  });
+}
+function writeToHash() {
+  const parameters = new URLSearchParams();
+  simpleValueElements.forEach((element) => {
+    parameters.append(element.id, element.value);
+  });
+  radioGroups.forEach((name) => {
+    const value = selectorQuery(
+      `input[type="radio"][name="${name}"]:checked`,
+      HTMLInputElement
+    ).value;
+    parameters.append(name, value);
+  });
+  location.hash = parameters.toString();
+}
+simpleValueElements.forEach((element) => {
+  element.addEventListener("input", writeToHash);
+  selectorQueryAll('input[type="radio"]', HTMLInputElement).forEach((element) =>
+    element.addEventListener("input", writeToHash)
+  );
+});
+
 let recommendedLineWidth = NaN;
 
 recommendedLineWidthButton.addEventListener("click", () => {
@@ -198,6 +248,7 @@ function updateSample() {
   context.lineWidth = lineWidth;
   laidOut.drawAll(context, margin, margin);
 }
+readFromHash();
 updateSample();
 [textTextArea, ...selectorQueryAll("input", HTMLInputElement)].forEach(
   (element) => {
@@ -255,13 +306,6 @@ updateBackground("lightgreen", 5);
  * - The bottom layer is the optional one.
  * - The font is generated based on the larger line width.
  *
- * The hash in the url needs to record the current state of the screen.
- * So it's easy to save and share your work.
- * Generally one property per <input>.
- * Changing a property will automatically update the hash.
- * Do I need a delay?  Or can I update the hash immediately?
- * We read in the values at start, and when the user changes them.
- *
  * Animation for handwriting:
  * Use the slider to draw it at a specific position.
  * And some way to do a realtime animation.
@@ -287,6 +331,17 @@ updateBackground("lightgreen", 5);
  * Snap to some reasonable values.  Maybe an <option> with only predefined values.
  * Always include pixel perfect as an option.
  * 100% means one css pixel per real pixel, the default if I didn't specify anything.
+ *
+ * What about the image-rendering: pixelated; property?
+ * Removing that will make the checkerboard look bad.
+ * Keeping it might make the content look less than ideal?
+ * Try it and see.
+ * If it's a problem, create a container div,
+ * set the size and background of that div the way we've been configuring the canvas.
+ * Put the canvas inside the div.
+ * use css to make the canvas full size, maybe width:100%
+ *
+ * Manually set the size of both the canvas and the div.  Normally they will be the same.  But maybe the div has a max width and a scroll bar.
  */
 
 /**
