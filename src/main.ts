@@ -143,11 +143,18 @@ const recommendedLineWidthButton = getById(
   "recommendedLineWidth",
   HTMLButtonElement
 );
+const backgroundColorInput = getById("backgroundColor", HTMLInputElement);
 
 const simpleValueElements: Pick<
   HTMLInputElement,
   "id" | "value" | "addEventListener"
->[] = [fontSizeInput, textTextArea, strokeColorInput, lineWidthInput];
+>[] = [
+  fontSizeInput,
+  textTextArea,
+  strokeColorInput,
+  lineWidthInput,
+  backgroundColorInput,
+];
 const radioGroups: readonly string[] = ["alignment", "fontFamily"];
 
 function readFromHash() {
@@ -262,7 +269,10 @@ updateSample();
  * @param baseColor Both halves of the checkerboard will have a color similar to this.
  * @param percentChange How close or distant the two colors should be from each other.
  */
-function updateBackground(baseColor: string, percentChange: number = 10) {
+function updateBackground(
+  baseColor: string = backgroundColorInput.value,
+  percentChange: number = 5
+) {
   const whiterColor = `color-mix(in oklch, ${baseColor} ${
     100 - percentChange
   }%, white ${percentChange}%)`;
@@ -283,13 +293,8 @@ function updateBackground(baseColor: string, percentChange: number = 10) {
   previewCanvas.style.backgroundSize = "20px 20px"; // Scale to 10px per square (2x2 pattern)
   previewCanvas.style.imageRendering = "pixelated"; // Ensure crisp edges
 }
-/**
- * TODO The color should be read from an html color input.
- * The other input only changes in code.  TODO tweak it some to see what a good value is.
- */
-updateBackground("lightgreen", 5);
-
-(window as any).updateBackground = updateBackground;
+updateBackground();
+backgroundColorInput.addEventListener("input", () => updateBackground());
 
 /**
  * TODO
