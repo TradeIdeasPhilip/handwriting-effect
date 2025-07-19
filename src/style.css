@@ -68,3 +68,9 @@ div.range-holder {
 div.range-holder input[type="range"] {
   flex-grow: 1;
 }
+
+#error {
+  color: white;
+  background-color: red;
+  font-size: 150%;
+}

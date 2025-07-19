@@ -1,9 +1,7 @@
 import {
   assertNonNullable,
   count,
-  FULL_CIRCLE,
   initializedArray,
-  lerp,
   makePromise,
   parseFloatX,
   zip,
@@ -17,32 +15,17 @@ import coreURL from "@ffmpeg/core?url";
 import wasmURL from "@ffmpeg/core/wasm?url";
 import { ParagraphLayout } from "./glib/paragraph-layout";
 import { LineFontMetrics, makeLineFont } from "./glib/line-font";
+import { EventBuffer } from "./util";
 
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
-
-const BOX_SIZE = 100;
-const RADIUS = 5;
-
-previewCanvas.width = BOX_SIZE;
-previewCanvas.height = BOX_SIZE;
-
-function drawAt(x: number, y: number) {
-  x = lerp(RADIUS, BOX_SIZE - RADIUS, x);
-  y = lerp(RADIUS, BOX_SIZE - RADIUS, y);
-  context.clearRect(0, 0, BOX_SIZE, BOX_SIZE);
-  context.beginPath();
-  context.ellipse(x, y, RADIUS, RADIUS, 0, 0, FULL_CIRCLE);
-  context.fillStyle = "#c4e2e4";
-  context.fill();
-}
 
 function getImages(count: number) {
   return initializedArray(count, (n) => {
     const where = n / (count - 1);
     const x = where;
     const y = 1 - where;
-    drawAt(x, y);
+    //drawAt(x, y);
     const promise = makePromise<Blob>();
     previewCanvas.toBlob((blob) => {
       if (blob) {
@@ -72,19 +55,6 @@ const load = async (ffmpeg: FFmpeg) => {
     console.log("Load progress:", progress)
   );
   try {
-    /*
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.wasm`,
-        "application/wasm"
-      ),
-      workerURL: await toBlobURL(
-        `${baseURL}/ffmpeg-core.worker.js`,
-        "text/javascript"
-      ), // Correct ESM path
-    });
-    */
     await ffmpeg.load({ coreURL, wasmURL });
     console.log("FFmpeg loaded successfully");
   } catch (error) {
@@ -131,7 +101,6 @@ getById("createVideo", HTMLButtonElement).addEventListener(
   createVideo
 );
 
-(window as any).drawAt = drawAt;
 (window as any).showImages = showImages;
 
 const fontSizeInput = getById("fontSize", HTMLInputElement);
@@ -145,61 +114,67 @@ const recommendedLineWidthButton = getById(
 );
 const backgroundColorInput = getById("backgroundColor", HTMLInputElement);
 
-const simpleValueElements: Pick<
-  HTMLInputElement,
-  "id" | "value" | "addEventListener"
->[] = [
-  fontSizeInput,
-  textTextArea,
-  strokeColorInput,
-  lineWidthInput,
-  backgroundColorInput,
-];
-const radioGroups: readonly string[] = ["alignment", "fontFamily"];
-
-function readFromHash() {
-  const parameters = new URLSearchParams(location.hash.substring(1));
-  simpleValueElements.forEach((element) => {
-    const requested = parameters.get(element.id);
-    if (typeof requested === "string") {
-      element.value = requested;
-    }
-  });
-  radioGroups.forEach((name) => {
-    const requested = parameters.get(name);
-    if (typeof requested === "string") {
-      const elements = selectorQueryAll(
-        `input[type="radio"][name="${name}"][value="${requested}"]`,
-        HTMLInputElement
-      );
-      if (elements.length != 1) {
-        console.warn("Expecting 1 radio button", elements, name, requested);
-      } else {
-        elements[0].checked = true;
+class Hash {
+  static #simpleValueElements: Pick<
+    HTMLInputElement,
+    "id" | "value" | "addEventListener"
+  >[] = [
+    fontSizeInput,
+    textTextArea,
+    strokeColorInput,
+    lineWidthInput,
+    backgroundColorInput,
+  ];
+  static #radioGroups: readonly string[] = ["alignment", "fontFamily"];
+  static read() {
+    const parameters = new URLSearchParams(location.hash.substring(1));
+    this.#simpleValueElements.forEach((element) => {
+      const requested = parameters.get(element.id);
+      if (typeof requested === "string") {
+        element.value = requested;
       }
-    }
-  });
+    });
+    this.#radioGroups.forEach((name) => {
+      const requested = parameters.get(name);
+      if (typeof requested === "string") {
+        const elements = selectorQueryAll(
+          `input[type="radio"][name="${name}"][value="${requested}"]`,
+          HTMLInputElement
+        );
+        if (elements.length != 1) {
+          console.warn("Expecting 1 radio button", elements, name, requested);
+        } else {
+          elements[0].checked = true;
+        }
+      }
+    });
+  }
+  static #write() {
+    const parameters = new URLSearchParams();
+    this.#simpleValueElements.forEach((element) => {
+      parameters.append(element.id, element.value);
+    });
+    this.#radioGroups.forEach((name) => {
+      const value = selectorQuery(
+        `input[type="radio"][name="${name}"]:checked`,
+        HTMLInputElement
+      ).value;
+      parameters.append(name, value);
+    });
+    location.replace("#" + parameters.toString());
+  }
+  static init() {
+    const eventBuffer = new EventBuffer(50, true, () => this.#write());
+    const writeToHash = () => eventBuffer.request();
+    this.#simpleValueElements.forEach((element) => {
+      element.addEventListener("input", writeToHash);
+      selectorQueryAll('input[type="radio"]', HTMLInputElement).forEach(
+        (element) => element.addEventListener("input", writeToHash)
+      );
+    });
+  }
 }
-function writeToHash() {
-  const parameters = new URLSearchParams();
-  simpleValueElements.forEach((element) => {
-    parameters.append(element.id, element.value);
-  });
-  radioGroups.forEach((name) => {
-    const value = selectorQuery(
-      `input[type="radio"][name="${name}"]:checked`,
-      HTMLInputElement
-    ).value;
-    parameters.append(name, value);
-  });
-  location.hash = parameters.toString();
-}
-simpleValueElements.forEach((element) => {
-  element.addEventListener("input", writeToHash);
-  selectorQueryAll('input[type="radio"]', HTMLInputElement).forEach((element) =>
-    element.addEventListener("input", writeToHash)
-  );
-});
+Hash.init();
 
 let recommendedLineWidth = NaN;
 
@@ -210,52 +185,60 @@ recommendedLineWidthButton.addEventListener("click", () => {
   }
 });
 
+const errorDiv = getById("error", HTMLDivElement);
+
 function updateSample() {
-  const fontSize = parseFloatX(fontSizeInput.value);
-  const lineWidth = parseFloatX(lineWidthInput.value);
-  const duration = parseFloatX(durationInput.value);
-  (
-    [
-      [fontSize, fontSizeInput],
-      [lineWidth, lineWidthInput],
-      [duration, durationInput],
-    ] as const
-  ).forEach(([value, element]) => {
-    element.style.backgroundColor = value === undefined ? "pink" : "";
-  });
-  if (
-    fontSize === undefined ||
-    lineWidth === undefined ||
-    duration === undefined
-  ) {
-    return;
+  try {
+    errorDiv.style.display = "none";
+    const fontSize = parseFloatX(fontSizeInput.value);
+    const lineWidth = parseFloatX(lineWidthInput.value);
+    const duration = parseFloatX(durationInput.value);
+    (
+      [
+        [fontSize, fontSizeInput],
+        [lineWidth, lineWidthInput],
+        [duration, durationInput],
+      ] as const
+    ).forEach(([value, element]) => {
+      element.style.backgroundColor = value === undefined ? "pink" : "";
+    });
+    if (
+      fontSize === undefined ||
+      lineWidth === undefined ||
+      duration === undefined
+    ) {
+      return;
+    }
+    recommendedLineWidth = fontSize / 10; //TODO when the font changes, so will this rule.
+    recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
+    const font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
+    const layout = new ParagraphLayout(font);
+    layout.addText(textTextArea.value);
+    const alignment = selectorQuery(
+      'input[type="radio"][name="alignment"]:checked',
+      HTMLInputElement
+    ).value;
+    const width = fontSize * 25;
+    const laidOut = layout.align(width, alignment as any);
+    console.log(font, laidOut);
+    /**
+     * 0.5em
+     */
+    const margin = (font.bottom - font.top) / 2;
+    console.log("margin", margin);
+    previewCanvas.width = width + 2 * margin;
+    previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom + 2 * margin;
+    previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
+    previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
+    context.strokeStyle = strokeColorInput.value;
+    context.lineWidth = lineWidth;
+    laidOut.drawAll(context, margin, margin);
+  } catch (reason: unknown) {
+    errorDiv.style.display = "";
+    console.error(reason);
   }
-  recommendedLineWidth = fontSize / 10; //TODO when the font changes, so will this rule.
-  recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
-  const font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
-  const layout = new ParagraphLayout(font);
-  layout.addText(textTextArea.value);
-  const alignment = selectorQuery(
-    'input[type="radio"][name="alignment"]:checked',
-    HTMLInputElement
-  ).value;
-  const width = fontSize * 25;
-  const laidOut = layout.align(width, alignment as any);
-  console.log(font, laidOut);
-  /**
-   * 0.5em
-   */
-  const margin = (font.bottom - font.top) / 2;
-  console.log("margin", margin);
-  previewCanvas.width = width + 2 * margin;
-  previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom + 2 * margin;
-  previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
-  previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
-  context.strokeStyle = strokeColorInput.value;
-  context.lineWidth = lineWidth;
-  laidOut.drawAll(context, margin, margin);
 }
-readFromHash();
+Hash.read();
 updateSample();
 [textTextArea, ...selectorQueryAll("input", HTMLInputElement)].forEach(
   (element) => {
@@ -271,12 +254,12 @@ updateSample();
  */
 function updateBackground(
   baseColor: string = backgroundColorInput.value,
-  percentChange: number = 5
+  percentChange: number = 10
 ) {
-  const whiterColor = `color-mix(in oklch, ${baseColor} ${
+  const whiterColor = `color-mix(in srgb-linear, ${baseColor} ${
     100 - percentChange
   }%, white ${percentChange}%)`;
-  const blackerColor = `color-mix(in oklch, ${baseColor} ${
+  const blackerColor = `color-mix(in srgb-linear, ${baseColor} ${
     100 - percentChange
   }%, black ${percentChange}%)`;
   const checkerboardCanvas = document.createElement("canvas"); // Use document.createElement
