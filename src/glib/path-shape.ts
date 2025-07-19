@@ -1223,11 +1223,16 @@ export class PathShapeError extends Error {
  */
 export class PathShape {
   getLength() {
+    // TODO this is serious overkill.
+    // If we are working from a path shape we will only have L's Q's and Cs.
+    // We already know the length of an L command.
+    // We QCommand and CCommand use directly call new Bezier() to implement length.
+    // And this function just sums up the lengths of the segments.
     const segments = normalize(abs(parse(this.rawPath)));
     let length = 0;
     segments.forEach((segment, index) => {
       if (index > 0) {
-        const previous = segments[index];
+        const previous = segments[index - 1];
         const command = segment[0];
         if (command != "C") {
           throw new Error("wtf");

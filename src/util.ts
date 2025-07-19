@@ -26,7 +26,9 @@ export class EventBuffer {
     readonly delayMS: number,
     readonly cumulative: boolean,
     private readonly action: () => void
-  ) {}
+  ) {
+    this.request = this.request.bind(this);
+  }
   /**
    * Only one action can be pending at a time.
    */

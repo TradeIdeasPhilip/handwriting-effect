@@ -264,7 +264,7 @@ export class ParagraphLayout {
           if (length <= shapeInfo.start) {
             break;
           }
-          if (length >= shapeInfo.length) {
+          if (length >= shapeInfo.end) {
             context.setLineDash([]);
           } else {
             context.setLineDash([length - shapeInfo.start, totalLength]);

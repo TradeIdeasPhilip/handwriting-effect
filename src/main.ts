@@ -163,13 +163,13 @@ class Hash {
     });
     location.replace("#" + parameters.toString());
   }
+  static readonly writeSoon = new EventBuffer(50, true, () => this.#write())
+    .request;
   static init() {
-    const eventBuffer = new EventBuffer(50, true, () => this.#write());
-    const writeToHash = () => eventBuffer.request();
     this.#simpleValueElements.forEach((element) => {
-      element.addEventListener("input", writeToHash);
+      element.addEventListener("input", this.writeSoon);
       selectorQueryAll('input[type="radio"]', HTMLInputElement).forEach(
-        (element) => element.addEventListener("input", writeToHash)
+        (element) => element.addEventListener("input", this.writeSoon)
       );
     });
   }
@@ -182,6 +182,7 @@ recommendedLineWidthButton.addEventListener("click", () => {
   if (Number.isFinite(recommendedLineWidth)) {
     lineWidthInput.value = recommendedLineWidth.toString();
     updateSample();
+    Hash.writeSoon();
   }
 });
 
