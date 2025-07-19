@@ -12,7 +12,8 @@
     // 250   constructor(private readonly onWake: (time: DOMHighResTimeStamp) => void) {
     "isolatedModules": false,
     "outDir": "./dist",
-    "types": ["vite/client"]
+    "types": ["vite/client"],
+    "typeRoots": ["./node_modules/@types", "./src/glib/types"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]

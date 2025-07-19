@@ -53,7 +53,6 @@ export class EventBuffer {
     const waitTime = isNaN(this.#lastRequestTime)
       ? this.delayMS
       : this.delayMS - (performance.now() - this.#lastRequestTime);
-    console.log(waitTime);
     this.#actionPending = true;
     this.#lastRequestTime = NaN;
     setTimeout(() => {

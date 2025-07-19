@@ -186,6 +186,8 @@ recommendedLineWidthButton.addEventListener("click", () => {
 });
 
 const errorDiv = getById("error", HTMLDivElement);
+const lengthSpan = getById("length", HTMLSpanElement);
+const progressInput = getById("progress", HTMLInputElement);
 
 function updateSample() {
   try {
@@ -220,19 +222,20 @@ function updateSample() {
     ).value;
     const width = fontSize * 25;
     const laidOut = layout.align(width, alignment as any);
-    console.log(font, laidOut);
     /**
      * 0.5em
      */
     const margin = (font.bottom - font.top) / 2;
-    console.log("margin", margin);
     previewCanvas.width = width + 2 * margin;
     previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom + 2 * margin;
     previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
     previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
     context.strokeStyle = strokeColorInput.value;
     context.lineWidth = lineWidth;
-    laidOut.drawAll(context, margin, margin);
+    //laidOut.drawAll(context, margin, margin);
+    const partial = laidOut.drawPartial(margin, margin);
+    lengthSpan.innerText = partial.totalLength.toString();
+    partial.drawTo(progressInput.valueAsNumber * partial.totalLength, context);
   } catch (reason: unknown) {
     errorDiv.style.display = "";
     console.error(reason);

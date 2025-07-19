@@ -240,6 +240,40 @@ export class ParagraphLayout {
         context.stroke(path);
       }
     }
-    return { width, words, allRowMetrics, getAllLetters, drawAll };
+    function drawPartial(left = 0, top = 0) {
+      let start = 0;
+      const allShapeInfo = [...getAllLetters(left, top)]
+        .flatMap(({ translatedShape }) => translatedShape.splitOnMove())
+        .map((shape) => {
+          const length = shape.getLength();
+          const end = start + length;
+          const path = new Path2D(shape.rawPath);
+          const result = { path, start, length, end };
+          start = end;
+          return result;
+        });
+      const totalLength = start;
+      function drawTo(length: number, context: CanvasRenderingContext2D) {
+        // TODO This doesn't work perfectly.
+        // It's like PathShape.getLength() doesn't match perfectly with the canvas's idea of the path length.
+        // TODO fix it!  It jumps a little but generally works.
+        // Q commands are much worse than L commands, but they both fail.
+        context.lineCap = "round";
+        context.lineJoin = "round";
+        for (const shapeInfo of allShapeInfo) {
+          if (length <= shapeInfo.start) {
+            break;
+          }
+          if (length >= shapeInfo.length) {
+            context.setLineDash([]);
+          } else {
+            context.setLineDash([length - shapeInfo.start, totalLength]);
+          }
+          context.stroke(shapeInfo.path);
+        }
+      }
+      return { totalLength, drawTo };
+    }
+    return { width, words, allRowMetrics, getAllLetters, drawAll, drawPartial };
   }
 }

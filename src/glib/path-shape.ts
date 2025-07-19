@@ -15,6 +15,11 @@ import {
 } from "phil-lib/misc";
 import { transform } from "./transforms";
 
+import parse from "parse-svg-path";
+import abs from "abs-svg-path";
+import normalize from "normalize-svg-path";
+import { Bezier } from "bezier-js";
+
 /**
  * This is a wrapper around an `SVGPathElement`.
  *
@@ -1217,6 +1222,29 @@ export class PathShapeError extends Error {
  * If you wan to make more complicated changes, work on an array of `Command` objects.
  */
 export class PathShape {
+  getLength() {
+    const segments = normalize(abs(parse(this.rawPath)));
+    let length = 0;
+    segments.forEach((segment, index) => {
+      if (index > 0) {
+        const previous = segments[index];
+        const command = segment[0];
+        if (command != "C") {
+          throw new Error("wtf");
+        }
+        const x0 = previous.at(-2);
+        const y0 = previous.at(-1);
+        if (typeof x0 != "number" || typeof y0 != "number") {
+          throw new Error("wtf");
+        }
+        const coordinates = [x0, y0, ...(segment.slice(1) as number[])];
+        const b = new Bezier(coordinates);
+        //console.log({previous,segments,coordinates, b, pathString:this.rawPath} )
+        length += b.length();
+      }
+    });
+    return length;
+  }
   /**
    * Create another path that will look the same, but backwards.
    * If you stroke or fill the path, it will look just like the original.
