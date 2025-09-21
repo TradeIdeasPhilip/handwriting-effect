@@ -1,4 +1,5 @@
 import {
+  assertClass,
   assertNonNullable,
   count,
   initializedArray,
@@ -86,8 +87,15 @@ async function createVideo() {
     throw new Error(`ffmpeg exec problem: ${status}`);
   }
   const data = await ffmpeg.readFile("output.mov");
+  /**
+   * The typescript library recently changed.
+   * readFile() is returning the right kind of object, but the type signature is not specific enough any more.
+   * This checks at runtime just to be sure.
+   */
+  const safeData =
+    typeof data == "string" ? data : assertClass(data.buffer, ArrayBuffer);
   // Save to filesystem
-  const blob = new Blob([data], { type: "video/quicktime" });
+  const blob = new Blob([safeData], { type: "video/quicktime" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
