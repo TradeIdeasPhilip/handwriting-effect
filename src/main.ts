@@ -2,9 +2,9 @@ import {
   assertClass,
   assertNonNullable,
   count,
-  initializedArray,
   makePromise,
   parseFloatX,
+  sleep,
   zip,
 } from "phil-lib/misc";
 import "./style.css";
@@ -21,12 +21,16 @@ import { EventBuffer } from "./util";
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
 
-function getImages(count: number) {
-  return initializedArray(count, (n) => {
+let inProgress: {
+  totalLength: number;
+  drawTo: (length: number, context: CanvasRenderingContext2D) => void;
+} = { totalLength: 0, drawTo(length, context) {} };
+
+function* getImages(count: number) {
+  for (let n = 0; n < count; n++) {
     const where = n / (count - 1);
-    const x = where;
-    const y = 1 - where;
-    //drawAt(x, y);
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+    inProgress.drawTo(where * inProgress.totalLength, context);
     const promise = makePromise<Blob>();
     previewCanvas.toBlob((blob) => {
       if (blob) {
@@ -35,18 +39,18 @@ function getImages(count: number) {
         promise.reject(new Error("failed"));
       }
     });
-    return promise.promise;
-  });
+    yield promise.promise;
+  }
 }
 
 async function showImages() {
-  (await Promise.all(getImages(10))).forEach((blob) => {
+  for await (const blob of getImages(10)) {
     const url = URL.createObjectURL(blob);
     const img = document.createElement("img");
     img.classList.add("show-images");
     img.src = url;
     document.body.append(img);
-  });
+  }
 }
 
 const load = async (ffmpeg: FFmpeg) => {
@@ -66,10 +70,13 @@ const load = async (ffmpeg: FFmpeg) => {
 async function createVideo() {
   const ffmpeg = new FFmpeg();
   await load(ffmpeg);
-  for (const [blob, index] of zip(await Promise.all(getImages(10)), count())) {
+  for (const [blob, index] of zip(getImages(10), count())) {
     const number = (index + 1).toString().padStart(2, "0");
     const filename = `frame${number}.png`;
-    ffmpeg.writeFile(filename, new Uint8Array(await blob.arrayBuffer()));
+    ffmpeg.writeFile(
+      filename,
+      new Uint8Array(await (await blob).arrayBuffer())
+    );
   }
   const status = await ffmpeg.exec([
     "-framerate",
@@ -242,9 +249,12 @@ function updateSample() {
     context.strokeStyle = strokeColorInput.value;
     context.lineWidth = lineWidth;
     //laidOut.drawAll(context, margin, margin);
-    const partial = laidOut.drawPartial(margin, margin);
-    lengthSpan.innerText = partial.totalLength.toString();
-    partial.drawTo(progressInput.valueAsNumber * partial.totalLength, context);
+    inProgress = laidOut.drawPartial(margin, margin);
+    lengthSpan.innerText = inProgress.totalLength.toString();
+    inProgress.drawTo(
+      progressInput.valueAsNumber * inProgress.totalLength,
+      context
+    );
   } catch (reason: unknown) {
     errorDiv.style.display = "";
     console.error(reason);

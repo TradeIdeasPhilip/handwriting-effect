@@ -1436,8 +1436,8 @@ export function makeLineFontMap(
       .Q_HV(lineX, capitalMiddle)
       .V(baseline)
       .Q_VH(curlyCenter, descender)
-      .Q_HV(advance, baseline).pathShape;
-    add("q", shape, advance);
+      .Q_HV(advance, (baseline + descender * 2) / 3).pathShape;
+    add("q", shape, advance * 0.667);
   }
   // MARK: r
   {
