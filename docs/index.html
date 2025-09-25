@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handwriting Effect</title>
+    <script type="module" crossorigin src="./assets/index-B0F7HT3c.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-3AUMzd5C.css">
+  </head>
+  <body>
+    <h1>Handwriting Effect</h1>
+    <p>
+      <a
+        href="https://github.com/TradeIdeasPhilip/handwriting-effect?tab=readme-ov-file#handwriting-effect"
+        >Help & about</a
+      >.
+    </p>
+    <button id="createVideo">Create Video</button>
+    <h2>Configure</h2>
+    <div class="radio-group input">
+      <span>Font&nbsp;Family:</span>
+      <label
+        ><input type="radio" name="fontFamily" value="standard" checked />
+        Standard</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="fontFamily"
+          value="Hershey Script"
+        />&nbsp;Hershey&nbsp;Script</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="fontFamily"
+          value="Hershey Other"
+        />&nbsp;Hershey&nbsp;Other</label
+      >
+    </div>
+    <div class="input">Font Size: <input id="fontSize" value="36" />px</div>
+    <div class="input">
+      Stroke Width: <input id="lineWidth" value="3.6" />px
+      <button id="recommendedLineWidth">Recommended: 1.00023px</button>
+    </div>
+    <div class="input">Color: <input id="strokeColor" type="color" /></div>
+    <div class="input">Duration: <input id="duration" value="5000" />ms</div>
+    <div class="input range-holder">
+      Progress:
+      <input id="progress" type="range" min="0" max="1" value="1" step="any" />
+    </div>
+    <div class="radio-group input">
+      <span>Alignment:</span>
+      <label
+        ><input type="radio" name="alignment" value="left" />&nbsp;Left</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="alignment"
+          value="center"
+          checked
+        />&nbsp;Center</label
+      >
+      <label
+        ><input type="radio" name="alignment" value="right" />&nbsp;Right</label
+      >
+      <label
+        ><input
+          type="radio"
+          name="alignment"
+          value="justify"
+        />&nbsp;Justify</label
+      >
+    </div>
+    <div>Text:</div>
+    <textarea id="text" rows="4">
+Like,
+share,
+and
+subscribe.</textarea
+    >
+    <div class="input">Line length: <span id="length">⁇⁇⁇</span></div>
+    <div class="input">
+      Background:
+      <input id="backgroundColor" type="color" value="#90EE90" />&nbsp; (This
+      will be transparent in the video.)
+    </div>
+    <h2>Preview</h2>
+    <div id="error">Error!</div>
+    <canvas id="preview"></canvas>
+    <h2>Frames</h2>
+  </body>
+</html>

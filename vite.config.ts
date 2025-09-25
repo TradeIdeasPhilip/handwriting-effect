@@ -14,4 +14,7 @@ export default defineConfig({
   worker: {
     format: "es", // Ensure workers use ES modules
   },
+  // For use with GitHub pages.
+  build: { outDir: "docs" },
+  base: "./",
 });
