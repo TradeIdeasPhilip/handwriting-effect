@@ -70,7 +70,9 @@ const load = async (ffmpeg: FFmpeg) => {
 async function createVideo() {
   const ffmpeg = new FFmpeg();
   await load(ffmpeg);
-  for (const [blob, index] of zip(getImages(10), count())) {
+  const duration = assertNonNullable(parseFloatX(durationInput.value));
+  const frameCount = Math.round((duration / 1000) * 30);
+  for (const [blob, index] of zip(getImages(frameCount), count())) {
     const number = (index + 1).toString().padStart(2, "0");
     const filename = `frame${number}.png`;
     ffmpeg.writeFile(
@@ -111,10 +113,9 @@ async function createVideo() {
   URL.revokeObjectURL(url);
 }
 
-getById("createVideo", HTMLButtonElement).addEventListener(
-  "click",
-  createVideo
-);
+const createVideoButton = getById("createVideo", HTMLButtonElement);
+
+createVideoButton.addEventListener("click", createVideo);
 
 (window as any).showImages = showImages;
 
@@ -225,8 +226,10 @@ function updateSample() {
       lineWidth === undefined ||
       duration === undefined
     ) {
+      createVideoButton.disabled = true;
       return;
     }
+    createVideoButton.disabled = false;
     recommendedLineWidth = fontSize / 10; //TODO when the font changes, so will this rule.
     recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
     const font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
