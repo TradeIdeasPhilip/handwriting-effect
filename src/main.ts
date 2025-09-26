@@ -43,7 +43,13 @@ function* getImages(count: number) {
   }
 }
 
+/**
+ * A simple option for debugging.
+ *
+ * Create a sequence of 10 images and display them on the page.
+ */
 async function showImages() {
+  document.body.insertAdjacentHTML("beforeend", "<h2>Frames</h2>");
   for await (const blob of getImages(10)) {
     const url = URL.createObjectURL(blob);
     const img = document.createElement("img");
@@ -52,9 +58,12 @@ async function showImages() {
     document.body.append(img);
   }
 }
+(window as any).showImages = showImages;
 
 const load = async (ffmpeg: FFmpeg) => {
-  const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm"; // Use ESM directory
+  // I could never get the baseURL version to work.
+  // Ideally I'd point to this existing CDN rather than posting my own copy of this big file.
+  //const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm"; // Use ESM directory
   ffmpeg.on("log", ({ message }) => console.log("FFmpeg log:", message));
   ffmpeg.on("progress", ({ progress }) =>
     console.log("Load progress:", progress)
@@ -80,6 +89,7 @@ async function createVideo() {
       new Uint8Array(await (await blob).arrayBuffer())
     );
   }
+  // I need a transparent background, so I have to pick pro res and pixel format.
   const status = await ffmpeg.exec([
     "-framerate",
     "30",
@@ -116,8 +126,6 @@ async function createVideo() {
 const createVideoButton = getById("createVideo", HTMLButtonElement);
 
 createVideoButton.addEventListener("click", createVideo);
-
-(window as any).showImages = showImages;
 
 const fontSizeInput = getById("fontSize", HTMLInputElement);
 const textTextArea = getById("text", HTMLTextAreaElement);
@@ -246,7 +254,8 @@ function updateSample() {
      */
     const margin = (font.bottom - font.top) / 2;
     previewCanvas.width = width + 2 * margin;
-    previewCanvas.height = laidOut.allRowMetrics.at(-1)!.bottom + 2 * margin;
+    previewCanvas.height =
+      (laidOut.allRowMetrics.at(-1)?.bottom ?? 0) + 2 * margin;
     previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
     previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
     context.strokeStyle = strokeColorInput.value;
@@ -310,9 +319,6 @@ backgroundColorInput.addEventListener("input", () => updateBackground());
  * Import the Hershey fonts.
  * Fix the question marks.
  *
- * Make this runnable from the web.
- * I.e. publish to github pages.
- *
  * Multiple layers
  * - You should be able to add or remove a second layer with a single checkbox.
  * - It has its own color and width.
@@ -324,8 +330,6 @@ backgroundColorInput.addEventListener("input", () => updateBackground());
  * And some way to do a realtime animation.
  * This animation does not repeat.
  * In our sample animation, just stop at the end.
- * When saving this video file, also save the last frame as a png.
- * CapCut doesn't have any easy way to extend the last frame for an extended period of time.
  *
  * Second animation option:
  *
