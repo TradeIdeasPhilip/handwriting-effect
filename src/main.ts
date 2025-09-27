@@ -17,6 +17,7 @@ import wasmURL from "@ffmpeg/core/wasm?url";
 import { ParagraphLayout } from "./glib/paragraph-layout";
 import { LineFontMetrics, makeLineFont } from "./glib/line-font";
 import { EventBuffer } from "./util";
+import { Font } from "./glib/letters-base";
 
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
@@ -238,9 +239,32 @@ function updateSample() {
       return;
     }
     createVideoButton.disabled = false;
-    recommendedLineWidth = fontSize / 10; //TODO when the font changes, so will this rule.
+    const fontFamily = selectorQuery(
+      'input[type="radio"][name="fontFamily"]:checked',
+      HTMLInputElement
+    ).value;
+    let font: Font;
+    switch (fontFamily) {
+      case "standard": {
+        font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
+        recommendedLineWidth = fontSize / 10;
+        break;
+      }
+      case "Hershey Cursive": {
+        font = Font.cursive(fontSize);
+        recommendedLineWidth = font.strokeWidth;
+        break;
+      }
+      case "Hershey Futura L": {
+        font = Font.futuraL(fontSize);
+        recommendedLineWidth = font.strokeWidth;
+        break;
+      }
+      default: {
+        throw new Error("wtf");
+      }
+    }
     recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
-    const font = makeLineFont(new LineFontMetrics(fontSize, lineWidth));
     const layout = new ParagraphLayout(font);
     layout.addText(textTextArea.value);
     const alignment = selectorQuery(

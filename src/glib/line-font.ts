@@ -4,12 +4,7 @@ import {
   pickAny,
   polarToRectangular,
 } from "phil-lib/misc";
-import {
-  DescriptionOfLetter,
-  Font,
-  FontMap,
-  FontMetrics,
-} from "./letters-base";
+import { Font, FontMetrics } from "./letters-base";
 import { PathShape, PathBuilder, LCommand, QCommand } from "./path-shape";
 
 const dEast = 0;
@@ -23,6 +18,80 @@ const dNorthEast = 7 * dSouthEast;
 
 dEast || dSouthEast || dNorthEast;
 
+class DescriptionOfLetter {
+  /**
+   * Create a new `DescriptionOfLetter` object exactly like this one but with a different shape.
+   * @param newShape Replace the existing shape with this.
+   * @returns The new `DescriptionOfLetter` object.
+   */
+  reshape(newShape: PathShape) {
+    return new DescriptionOfLetter(newShape, this.advance, this.fontMetrics);
+  }
+  readonly #shapeFactory: () => PathShape;
+  get shape() {
+    return this.#shapeFactory();
+  }
+  constructor(
+    shape: PathShape | (() => PathShape),
+    /**
+     * How far to advance the print head after printing this character.
+     * In SVG units.
+     * Typically the "black" area of the character will start at x=0 and end at x=advance.
+     */
+    public readonly advance: number,
+    public readonly fontMetrics: FontMetrics
+  ) {
+    if (shape instanceof PathShape) {
+      this.#shapeFactory = () => shape;
+    } else {
+      this.#shapeFactory = shape;
+    }
+  }
+  /**
+   * This is in the right format for a lot of _css properties_.
+   *
+   * If you are planning to set the d _attribute_ of an element, use this.d instead.
+   */
+  get cssPath() {
+    return this.shape.cssPath;
+  }
+  get d() {
+    return this.shape.rawPath;
+  }
+  /**
+   * Create a new element to draw this letter.
+   * @returns This is always a <path> element.
+   *
+   * I considered making that a <g> element.
+   * But see makeElements(), translate(), etc. instead.
+   * The focus of this project is creating and
+   * manipulating paths.
+   */
+  makeElement(): SVGPathElement {
+    return this.shape.makeElement();
+  }
+  /**
+   *
+   * @returns One element per continuous part of the path.
+   */
+  makeElements() {
+    return this.shape.splitOnMove().map((innerShape) => ({
+      innerShape,
+      element: innerShape.makeElement(),
+    }));
+  }
+}
+
+/**
+ * Order is explicitly undefined.
+ * The order is based on the most convenient implementation and is likely to change.
+ *
+ * This is aimed at older code.
+ * This used to be called `Font` in a previous project.
+ * See the new `Font` class for the preferred way of doing things.
+ */
+export type FontMap = Map<string, DescriptionOfLetter>;
+
 /**
  *
  * @param fontMetrics How big to make the font.
@@ -32,15 +101,15 @@ dEast || dSouthEast || dNorthEast;
  */
 export function makeLineFont(fontMetrics: number | LineFontMetrics): Font {
   const fontMap = makeLineFontMap(fontMetrics);
-  const { top, bottom, spaceWidth, strokeWidth, defaultKerning } = (fontMap.get(
-    "0"
-  ) ?? pickAny(fontMap))!.fontMetrics;
+  const { top, bottom, spaceWidth, strokeWidth, defaultKerning, mHeight } =
+    (fontMap.get("0") ?? pickAny(fontMap))!.fontMetrics;
   const result = new Font(
     top,
     bottom,
     spaceWidth,
     strokeWidth,
     defaultKerning,
+    mHeight,
     fontMap
   );
   return result;
