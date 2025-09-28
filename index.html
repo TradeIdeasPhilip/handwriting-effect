@@ -19,15 +19,15 @@
     <table>
       <tr>
         <th>Debug notes</th>
-        <td><div id="ffmpeg-notes"></div></td>
+        <td style="background-color: #fee"><div id="ffmpeg-notes"></div></td>
       </tr>
       <tr>
         <th>Progress</th>
-        <td id="ffmpeg-progress"></td>
+        <td id="ffmpeg-progress" style="background-color: #efe"></td>
       </tr>
       <tr>
         <th>More info</th>
-        <td id="ffmpeg-output"></td>
+        <td id="ffmpeg-output" style="background-color: #eef"></td>
       </tr>
     </table>
     <h2>Configure</h2>
@@ -52,16 +52,17 @@
         />&nbsp;Hershey&nbsp;Futura&nbsp;L</label
       >
     </div>
-    <div class="input">Font Size: <input id="fontSize" value="36" />px</div>
     <div class="input">
-      Stroke Width: <input id="lineWidth" value="3.6" />px
-      <button id="recommendedLineWidth">Recommended: 1.00023px</button>
+      Font Size: <input id="fontSize" value="36" /> pixels
+    </div>
+    <div class="input">
+      Stroke Width: <input id="lineWidth" value="3.6" /> pixels
+      <button id="recommendedLineWidth">Recommended: 1.00023 pixels</button>
     </div>
     <div class="input">Color: <input id="strokeColor" type="color" /></div>
-    <div class="input">Duration: <input id="duration" value="5000" />ms</div>
-    <div class="input range-holder">
-      Progress:
-      <input id="progress" type="range" min="0" max="1" value="1" step="any" />
+    <div class="input">
+      Duration: <input id="duration" value="5.0" /> seconds.&nbsp; (Line length
+      = <span id="length">⁇⁇⁇</span> pixels.)
     </div>
     <div class="radio-group input">
       <span>Alignment:</span>
@@ -88,20 +89,18 @@
       >
     </div>
     <div>Text:</div>
-    <textarea id="text" rows="4">
-Like,
-share,
-and
-subscribe.</textarea
-    >
-    <div class="input">Line length: <span id="length">⁇⁇⁇</span></div>
+    <textarea id="text" rows="4">Like, share, and subscribe.</textarea>
+    <h2>Preview</h2>
+    <div id="error">Error!</div>
+    <div class="input range-holder">
+      Progress:
+      <input id="progress" type="range" min="0" max="1" value="1" step="any" />
+    </div>
     <div class="input">
       Background:
       <input id="backgroundColor" type="color" value="#90EE90" />&nbsp; (This
       will be transparent in the video.)
     </div>
-    <h2>Preview</h2>
-    <div id="error">Error!</div>
     <canvas id="preview"></canvas>
   </body>
 </html>

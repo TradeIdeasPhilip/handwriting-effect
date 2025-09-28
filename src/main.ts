@@ -104,8 +104,11 @@ async function createVideo() {
   createVideoButton.disabled = true;
   const ffmpeg = new FFmpeg();
   await load(ffmpeg);
+  /**
+   * In seconds.
+   */
   const duration = assertNonNullable(parseFloatX(durationInput.value));
-  const frameCount = Math.round((duration / 1000) * 30);
+  const frameCount = Math.round(duration * 30);
   for (const [blob, index] of zip(getImages(frameCount), count())) {
     const number = (index + 1).toString().padStart(2, "0");
     const filename = `frame${number}.png`;
@@ -288,7 +291,10 @@ function updateSample() {
         throw new Error("wtf");
       }
     }
-    recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth}px`;
+    recommendedLineWidthButton.innerText = `Recommended: ${recommendedLineWidth.toLocaleString(
+      undefined,
+      { maximumFractionDigits: 2 }
+    )} pixels`;
     const layout = new ParagraphLayout(font);
     layout.addText(textTextArea.value);
     const alignment = selectorQuery(
@@ -310,7 +316,9 @@ function updateSample() {
     context.lineWidth = lineWidth;
     //laidOut.drawAll(context, margin, margin);
     inProgress = laidOut.drawPartial(margin, margin);
-    lengthSpan.innerText = inProgress.totalLength.toString();
+    lengthSpan.innerText = inProgress.totalLength.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
     inProgress.drawTo(
       progressInput.valueAsNumber * inProgress.totalLength,
       context
@@ -360,6 +368,10 @@ function updateBackground(
 }
 updateBackground();
 backgroundColorInput.addEventListener("input", () => updateBackground());
+//backgroundColorInput.addEventListener("input", new EventBuffer(1, false, updateBackground).request);
+// backgroundColorInput was updating really sluggishly.
+// I eventually realized that Vite's auto-reload magic was causing problems.
+// If that is slow for you (in development) just hit refresh in the browser.
 
 /**
  * TODO

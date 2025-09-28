@@ -18,7 +18,7 @@ But I want to add the fixed width mode and the second line before I seriously as
 
 Choose:
 
-- document width, in pixels
+- word wrap width, in pixels
 - fps (currently hard coded to 30)
   - Or not.
   - Just document that it is 30 fps.
