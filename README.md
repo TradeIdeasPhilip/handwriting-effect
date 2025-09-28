@@ -7,21 +7,18 @@ Save them as videos with transparent backgrounds.
 
 ## Status
 
-This proof of concept works!
-
 I can create a video with the requested content!
 I've tested the results in CapCut.
+I've run it a lot to shake out the obvious bugs.
+
+It could be useful to someone now.
+But I want to add the fixed width mode and the second line before I seriously ask anyone to use this software.
 
 ## TO DO
 
 Choose:
 
 - document width, in pixels
-- alignment
-  - mostly working,
-  - but I don't like it when I add a hard return in justify mode.
-  - that should force that line to be left justified.
-  - The return means that you are creating multiple paragraphs.
 - fps (currently hard coded to 30)
   - Or not.
   - Just document that it is 30 fps.
@@ -78,13 +75,3 @@ It would be amazing if we saved the dots and crosses until the end of the word.
 More like a real human.
 Seems very reasonable, especially since I already have a function for parsing one **word** at a time.
 Only for the cursive font.
-
-# What if you try to encode a movie twice?
-
-While it's still running?
-
-After success?
-
-After failure?
-
-Need to test and fix the code.

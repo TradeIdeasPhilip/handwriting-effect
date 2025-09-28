@@ -87,7 +87,9 @@ const load = async (ffmpeg: FFmpeg) => {
       appendToNotes(message);
     }
   });
-  ffmpeg.on("progress", ({ progress }) => setProgress(`Compressing: ${progress * 100}%`));
+  ffmpeg.on("progress", ({ progress }) =>
+    setProgress(`Compressing: ${progress * 100}%`)
+  );
   try {
     await ffmpeg.load({ coreURL, wasmURL });
     appendToNotes("FFmpeg loaded successfully");
@@ -97,7 +99,9 @@ const load = async (ffmpeg: FFmpeg) => {
     throw error;
   }
 };
+const createVideoButton = getById("createVideo", HTMLButtonElement);
 async function createVideo() {
+  createVideoButton.disabled = true;
   const ffmpeg = new FFmpeg();
   await load(ffmpeg);
   const duration = assertNonNullable(parseFloatX(durationInput.value));
@@ -143,9 +147,8 @@ async function createVideo() {
   a.download = "output.mov";
   a.click();
   URL.revokeObjectURL(url);
+  createVideoButton.disabled = false;
 }
-
-const createVideoButton = getById("createVideo", HTMLButtonElement);
 
 createVideoButton.addEventListener("click", createVideo);
 
