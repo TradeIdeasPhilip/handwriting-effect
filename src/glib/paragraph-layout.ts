@@ -110,6 +110,7 @@ export class ParagraphLayout {
     alignment: "left" | "center" | "right" | "justify" = "left"
   ) {
     const lines: WordInfo[][] = [[]];
+    const hardLineBreakAt = new Set<number>();
     let x = 0;
     this.#items.forEach((item) => {
       if (item instanceof WordInfo) {
@@ -120,6 +121,8 @@ export class ParagraphLayout {
         x += item.width + item.spaceAfter;
         lines.at(-1)!.push(item);
       } else {
+        const currentLineIndex = lines.length - 1;
+        hardLineBreakAt.add(currentLineIndex);
         x = 0;
         lines.push([]);
       }
@@ -140,16 +143,25 @@ export class ParagraphLayout {
       minWidth: number;
     }>();
     lines.forEach((line) => {
-      const top = y;
-      const baseline = top - Math.min(...line.map((wordInfo) => wordInfo.top));
-      const bottom =
-        baseline + Math.max(...line.map((wordInfo) => wordInfo.bottom));
-      const minWidth =
-        sum(line.map((wordInfo) => wordInfo.width + wordInfo.spaceAfter)) -
-        line.at(-1)!.spaceAfter;
-
-      allRowMetrics.push({ top, baseline, bottom, minWidth });
-      y = bottom;
+      if (line.length == 0) {
+        const top = y;
+        const baseline = top - this.font.top;
+        const bottom = baseline + this.font.bottom;
+        const minWidth = 0;
+        allRowMetrics.push({ top, baseline, bottom, minWidth });
+        y = bottom;
+      } else {
+        const top = y;
+        const baseline =
+          top - Math.min(...line.map((wordInfo) => wordInfo.top));
+        const bottom =
+          baseline + Math.max(...line.map((wordInfo) => wordInfo.bottom));
+        const minWidth =
+          sum(line.map((wordInfo) => wordInfo.width + wordInfo.spaceAfter)) -
+          line.at(-1)!.spaceAfter;
+        allRowMetrics.push({ top, baseline, bottom, minWidth });
+        y = bottom;
+      }
     });
     const words = new Array<{
       x: number;
@@ -205,10 +217,11 @@ export class ParagraphLayout {
           break;
         }
         case "justify": {
-          if (index < lines.length - 1) {
-            justify();
-          } else {
+          const lastLine = index == lines.length - 1;
+          if (lastLine || hardLineBreakAt.has(index)) {
             left();
+          } else {
+            justify();
           }
           break;
         }

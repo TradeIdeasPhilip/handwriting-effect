@@ -4,7 +4,6 @@ import {
   count,
   makePromise,
   parseFloatX,
-  sleep,
   zip,
 } from "phil-lib/misc";
 import "./style.css";
@@ -88,7 +87,7 @@ const load = async (ffmpeg: FFmpeg) => {
       appendToNotes(message);
     }
   });
-  ffmpeg.on("progress", ({ progress }) => setProgress(progress.toString()));
+  ffmpeg.on("progress", ({ progress }) => setProgress(`Compressing: ${progress * 100}%`));
   try {
     await ffmpeg.load({ coreURL, wasmURL });
     appendToNotes("FFmpeg loaded successfully");
@@ -106,7 +105,7 @@ async function createVideo() {
   for (const [blob, index] of zip(getImages(frameCount), count())) {
     const number = (index + 1).toString().padStart(2, "0");
     const filename = `frame${number}.png`;
-    setProgress(`Creating frame ${filename}} of ${frameCount}`);
+    setProgress(`Creating ${filename} of ${frameCount}`);
     ffmpeg.writeFile(
       filename,
       new Uint8Array(await (await blob).arrayBuffer())
