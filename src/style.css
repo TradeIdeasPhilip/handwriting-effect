@@ -74,3 +74,24 @@ div.range-holder input[type="range"] {
   background-color: red;
   font-size: 150%;
 }
+
+th {
+  font-weight: bolder;
+  text-align: right;
+}
+
+td {
+  border: thin black solid;
+  font-family: "Source Code Pro", monospace;
+  font-weight: 400;
+  font-size: 85%;
+}
+
+td:last-child {
+  width: 100%;
+}
+
+div#ffmpeg-notes {
+  overflow: auto;
+  max-height: 33vh;
+}

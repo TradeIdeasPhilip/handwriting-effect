@@ -61,18 +61,39 @@ async function showImages() {
 }
 (window as any).showImages = showImages;
 
+const ffmpegNotes = getById("ffmpeg-notes", HTMLDivElement);
+const ffmpegProgress = getById("ffmpeg-progress", HTMLTableCellElement);
+const ffmpegOutput = getById("ffmpeg-output", HTMLTableCellElement);
+
+function appendToNotes(text: string) {
+  ffmpegNotes.append(text, document.createElement("br"));
+}
+
+function setProgress(text: string) {
+  ffmpegProgress.textContent = text;
+}
+
+function setOutput(text: string) {
+  ffmpegOutput.textContent = text;
+}
+
 const load = async (ffmpeg: FFmpeg) => {
   // I could never get the baseURL version to work.
   // Ideally I'd point to this existing CDN rather than posting my own copy of this big file.
   //const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm"; // Use ESM directory
-  ffmpeg.on("log", ({ message }) => console.log("FFmpeg log:", message));
-  ffmpeg.on("progress", ({ progress }) =>
-    console.log("Load progress:", progress)
-  );
+  ffmpeg.on("log", ({ message }) => {
+    if (/^frame=/.test(message)) {
+      setOutput(message);
+    } else {
+      appendToNotes(message);
+    }
+  });
+  ffmpeg.on("progress", ({ progress }) => setProgress(progress.toString()));
   try {
     await ffmpeg.load({ coreURL, wasmURL });
-    console.log("FFmpeg loaded successfully");
+    appendToNotes("FFmpeg loaded successfully");
   } catch (error) {
+    appendToNotes("FFmpeg load failed");
     console.error("FFmpeg load failed:", error);
     throw error;
   }
@@ -85,6 +106,7 @@ async function createVideo() {
   for (const [blob, index] of zip(getImages(frameCount), count())) {
     const number = (index + 1).toString().padStart(2, "0");
     const filename = `frame${number}.png`;
+    setProgress(`Creating frame ${filename}} of ${frameCount}`);
     ffmpeg.writeFile(
       filename,
       new Uint8Array(await (await blob).arrayBuffer())
