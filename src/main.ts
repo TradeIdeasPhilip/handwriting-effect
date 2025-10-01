@@ -164,6 +164,17 @@ const recommendedLineWidthButton = getById(
   "recommendedLineWidth",
   HTMLButtonElement
 );
+const showBottomLineCheckbox = selectorQuery(
+  'input[name="showBottomLine"]',
+  HTMLInputElement
+);
+const bottomLineWidthInput = getById("lineWidth-2", HTMLInputElement);
+const bottomStrokeColorInput = getById("strokeColor-2", HTMLInputElement);
+const bottomAlphaInput = getById("alpha", HTMLInputElement);
+const bottomXOffsetInput = getById("X-offset", HTMLInputElement);
+const bottomYOffsetInput = getById("Y-offset", HTMLInputElement);
+const bottomDelayInput = getById("delay", HTMLInputElement);
+
 const backgroundColorInput = getById("backgroundColor", HTMLInputElement);
 
 class Hash {
@@ -240,19 +251,30 @@ recommendedLineWidthButton.addEventListener("click", () => {
 
 const errorDiv = getById("error", HTMLDivElement);
 const lengthSpan = getById("length", HTMLSpanElement);
+const totalTimeSpan = getById("total-time", HTMLSpanElement);
 const progressInput = getById("progress", HTMLInputElement);
 
+// TODO The problem is that we might make the button createVideoButton visible at the wrong time.
+// If (the video is encoding || the inputs are invalid), the button should be disabled.
 function updateSample() {
   try {
     errorDiv.style.display = "none";
     const fontSize = parseFloatX(fontSizeInput.value);
     const lineWidth = parseFloatX(lineWidthInput.value);
     const duration = parseFloatX(durationInput.value);
+    const bottomLineWidth = parseFloatX(bottomLineWidthInput.value);
+    const bottomXOffset = parseFloatX(bottomXOffsetInput.value);
+    const bottomYOffset = parseFloatX(bottomYOffsetInput.value);
+    const bottomDelay = parseFloatX(bottomDelayInput.value);
     (
       [
         [fontSize, fontSizeInput],
         [lineWidth, lineWidthInput],
         [duration, durationInput],
+        [bottomLineWidth, bottomLineWidthInput],
+        [bottomXOffset, bottomXOffsetInput],
+        [bottomYOffset, bottomYOffsetInput],
+        [bottomDelay, bottomDelayInput],
       ] as const
     ).forEach(([value, element]) => {
       element.style.backgroundColor = value === undefined ? "pink" : "";
@@ -260,7 +282,12 @@ function updateSample() {
     if (
       fontSize === undefined ||
       lineWidth === undefined ||
-      duration === undefined
+      duration === undefined ||
+      (showBottomLineCheckbox.checked &&
+        (bottomLineWidth === undefined ||
+          bottomXOffset === undefined ||
+          bottomYOffset === undefined ||
+          bottomDelay === undefined))
     ) {
       createVideoButton.disabled = true;
       return;
@@ -319,6 +346,16 @@ function updateSample() {
     lengthSpan.innerText = inProgress.totalLength.toLocaleString(undefined, {
       maximumFractionDigits: 2,
     });
+    if (duration === undefined || bottomDelay === undefined) {
+      totalTimeSpan.innerText = "???";
+    } else {
+      totalTimeSpan.innerText = (duration + Math.abs(bottomDelay)).toLocaleString(
+        undefined,
+        {
+          maximumFractionDigits: 4,
+        }
+      );
+    }
     inProgress.drawTo(
       progressInput.valueAsNumber * inProgress.totalLength,
       context
@@ -372,6 +409,22 @@ backgroundColorInput.addEventListener("input", () => updateBackground());
 // backgroundColorInput was updating really sluggishly.
 // I eventually realized that Vite's auto-reload magic was causing problems.
 // If that is slow for you (in development) just hit refresh in the browser.
+
+{
+  const bottomLineAdditionalSettings = getById(
+    "bottom-line-sub-container",
+    HTMLDivElement
+  );
+  function updateBottomLineSettings() {
+    const showAll = showBottomLineCheckbox.checked;
+    const newHeight = showAll
+      ? "calc-size(fit-content, size * 1)"
+      : "calc-size(fit-content, size * 0)";
+    bottomLineAdditionalSettings.style.height = newHeight;
+  }
+  updateBottomLineSettings();
+  showBottomLineCheckbox.addEventListener("click", updateBottomLineSettings);
+}
 
 /**
  * TODO

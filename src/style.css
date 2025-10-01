@@ -92,5 +92,19 @@ td:last-child {
 
 div#ffmpeg-notes {
   overflow: auto;
+  height: 2.7lh;
   max-height: 33vh;
+}
+
+#bottom-line-container {
+  border-left: solid black 0.5em;
+  padding-left: 0.5em;
+}
+
+#bottom-line-sub-container {
+  transition: height 0.5s ease;
+}
+
+#bottom-line-sub-container {
+  overflow: clip;
 }

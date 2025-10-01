@@ -90,6 +90,44 @@
     </div>
     <div>Text:</div>
     <textarea id="text" rows="4">Like, share, and subscribe.</textarea>
+    <div id="bottom-line-container">
+      <div class="input">
+        <label
+          ><input type="checkbox" name="showBottomLine" checked /> Show bottom
+          line.</label
+        >
+        <div id="bottom-line-sub-container">
+          <div class="input">
+            Stroke Width: <input id="lineWidth-2" value="3.6" /> pixels.
+          </div>
+          <div class="input range-holder">
+            Color: <input id="strokeColor-2" type="color" />
+            Alpha: (Transparent)
+            <input
+              id="alpha"
+              type="range"
+              min="0"
+              max="1"
+              value="1"
+              step="any"
+            />
+            (Opaque)
+          </div>
+          <div class="input">
+            X offset: <input id="X-offset" value="1" /> pixels, Y offset:
+            <input id="Y-offset" value="1" /> pixels.
+          </div>
+          <div class="input">
+            Delay: <input id="delay" value="-1.0" /> seconds. (Total of <span id="total-time">❓❓❓</span> seconds.)
+          </div>
+          <div class="input">
+            <button>Simple Outline</button>
+            <button>Big Shadow</button>
+            <button>Extruded</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <h2>Preview</h2>
     <div id="error">Error!</div>
     <div class="input range-holder">
