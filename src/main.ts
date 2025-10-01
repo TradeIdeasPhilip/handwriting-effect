@@ -4,6 +4,7 @@ import {
   count,
   makePromise,
   parseFloatX,
+  radiansPerDegree,
   zip,
 } from "phil-lib/misc";
 import "./style.css";
@@ -99,6 +100,27 @@ const load = async (ffmpeg: FFmpeg) => {
     throw error;
   }
 };
+const simpleOutlineButton = getById("simpleOutline", HTMLButtonElement);
+const bigShadowButton = getById("bigShadow", HTMLButtonElement);
+const extrudedButton = getById("extruded", HTMLButtonElement);
+let doSimpleOutlineButton = () => {
+  console.warn("huh?");
+};
+let doBigShadowButton = () => {
+  console.warn("huh?");
+};
+let doExtrudedButton = () => {
+  console.warn("huh?");
+};
+simpleOutlineButton.addEventListener("click", () => doSimpleOutlineButton());
+bigShadowButton.addEventListener("click", () => doBigShadowButton());
+extrudedButton.addEventListener("click", () => doExtrudedButton());
+function disableBottomLineSamples() {
+  simpleOutlineButton.disabled = true;
+  bigShadowButton.disabled = true;
+  extrudedButton.disabled = true;
+}
+disableBottomLineSamples();
 const createVideoButton = getById("createVideo", HTMLButtonElement);
 async function createVideo() {
   createVideoButton.disabled = true;
@@ -290,6 +312,7 @@ function updateSample() {
           bottomDelay === undefined))
     ) {
       createVideoButton.disabled = true;
+      disableBottomLineSamples();
       return;
     }
     createVideoButton.disabled = false;
@@ -349,13 +372,52 @@ function updateSample() {
     if (duration === undefined || bottomDelay === undefined) {
       totalTimeSpan.innerText = "???";
     } else {
-      totalTimeSpan.innerText = (duration + Math.abs(bottomDelay)).toLocaleString(
-        undefined,
-        {
-          maximumFractionDigits: 4,
-        }
-      );
+      totalTimeSpan.innerText = (
+        duration + Math.abs(bottomDelay)
+      ).toLocaleString(undefined, {
+        maximumFractionDigits: 4,
+      });
     }
+    doSimpleOutlineButton = () => {
+      bottomLineWidthInput.value = (lineWidth * 1.25).toString();
+      bottomAlphaInput.value = "1";
+      bottomStrokeColorInput.value = "#000000";
+      bottomXOffsetInput.value = "0";
+      bottomYOffsetInput.value = "0";
+      bottomDelayInput.value = "0";
+      updateSample();
+    };
+    simpleOutlineButton.disabled = false;
+    const angle = 60 * radiansPerDegree;
+    doBigShadowButton = () => {
+      const r = lineWidth * 0.8;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+      const width = lineWidth * 1.1;
+      bottomLineWidthInput.value = width.toString();
+      bottomAlphaInput.value = "0.5";
+      bottomStrokeColorInput.value = "#000000";
+      bottomXOffsetInput.value = x.toFixed(5);
+      bottomYOffsetInput.value = y.toFixed(5);
+      bottomDelayInput.value = "0";
+      updateSample();
+    };
+    bigShadowButton.disabled = false;
+    doExtrudedButton = () => {
+      // https://github.com/TradeIdeasPhilip/random-svg-tests/blob/fdea849397ac10586c01d0d5694b00aed6bc5d85/src/fourier-smackdown.css#L197
+      const r = lineWidth / 3;
+      const x = Math.cos(angle) * r;
+      const y = Math.sin(angle) * r;
+      const width = lineWidth / 3;
+      bottomLineWidthInput.value = width.toString();
+      bottomAlphaInput.value = "1";
+      bottomStrokeColorInput.value = "#ff0894";
+      bottomXOffsetInput.value = x.toFixed(5);
+      bottomYOffsetInput.value = y.toFixed(5);
+      bottomDelayInput.value = "0";
+      updateSample();
+    };
+    extrudedButton.disabled = false;
     inProgress.drawTo(
       progressInput.valueAsNumber * inProgress.totalLength,
       context
