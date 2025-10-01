@@ -1,9 +1,15 @@
 # Handwriting Effect
 
+![Sample of the handwriting effect](./for_readme/Handwriting_Sample.gif)
+The handwriting effect draws text on the screen as if you were writing with a pencil.
+
 ## Goal
 
 Create bespoke animations in a web app.
 Save them as videos with transparent backgrounds.
+
+This will let anyone create a handwriting effect to add to their own videos.
+The output of this program should work in most video editing programs.
 
 ## Status
 
