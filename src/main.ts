@@ -121,9 +121,46 @@ function disableBottomLineSamples() {
   extrudedButton.disabled = true;
 }
 disableBottomLineSamples();
-const createVideoButton = getById("createVideo", HTMLButtonElement);
+/**
+ * This managed the "Create Video" button's `disabled` state.
+ *
+ * Multiple inputs can affect this state.
+ * These inputs can change independently.
+ */
+class CreateVideoButton {
+  private constructor() {
+    throw new Error("wtf");
+  }
+  static readonly element = getById("createVideo", HTMLButtonElement);
+  /**
+   * Expectation: The main program will read the config info and set this to true as part of it's normal start up process.
+   *
+   * It does that anyway because it wants to make sure all of the settings on the screen match the internal state.
+   * If that initial call fails there's probably an internal error somewhere, and it's just as well to treat that like an invalid input.
+   */
+  static #configError = true;
+  static #processRunning = false;
+  static get configError() {
+    return this.#configError;
+  }
+  static get processRunning() {
+    return this.#processRunning;
+  }
+  static #updateDisabled() {
+    this.element.disabled = this.configError || this.processRunning;
+  }
+  static set configError(newValue: boolean) {
+    this.#configError = newValue;
+    this.#updateDisabled();
+  }
+  static set processRunning(newValue: boolean) {
+    this.#processRunning = newValue;
+    this.#updateDisabled();
+  }
+}
+
 async function createVideo() {
-  createVideoButton.disabled = true;
+  CreateVideoButton.processRunning = true;
   const ffmpeg = new FFmpeg();
   await load(ffmpeg);
   /**
@@ -172,10 +209,10 @@ async function createVideo() {
   a.download = "output.mov";
   a.click();
   URL.revokeObjectURL(url);
-  createVideoButton.disabled = false;
+  CreateVideoButton.processRunning = false;
 }
 
-createVideoButton.addEventListener("click", createVideo);
+CreateVideoButton.element.addEventListener("click", createVideo);
 
 const fontSizeInput = getById("fontSize", HTMLInputElement);
 const textTextArea = getById("text", HTMLTextAreaElement);
@@ -276,8 +313,6 @@ const lengthSpan = getById("length", HTMLSpanElement);
 const totalTimeSpan = getById("total-time", HTMLSpanElement);
 const progressInput = getById("progress", HTMLInputElement);
 
-// TODO The problem is that we might make the button createVideoButton visible at the wrong time.
-// If (the video is encoding || the inputs are invalid), the button should be disabled.
 function updateSample() {
   try {
     errorDiv.style.display = "none";
@@ -311,11 +346,11 @@ function updateSample() {
           bottomYOffset === undefined ||
           bottomDelay === undefined))
     ) {
-      createVideoButton.disabled = true;
+      CreateVideoButton.configError = true;
       disableBottomLineSamples();
       return;
     }
-    createVideoButton.disabled = false;
+    CreateVideoButton.configError = false;
     const fontFamily = selectorQuery(
       'input[type="radio"][name="fontFamily"]:checked',
       HTMLInputElement

@@ -14,26 +14,14 @@ I've run it a lot to shake out the obvious bugs.
 It could be useful to someone now.
 But I want to add the fixed width mode and the second line before I seriously ask anyone to use this software.
 
-## TO DO
+## Second Line
 
-Choose:
+I need a way to draw two copies of the text.
 
-- word wrap width, in pixels
-- fps (currently hard coded to 30)
-  - Or not.
-  - Just document that it is 30 fps.
-  - Any video editing software can adjust that, if necessary or desired.
+The GUI exists.
+Now I have to implement it!
 
-You get one or two lines. Each has some choices:
-
-- Thickness. The default will depend on the font and the font size.
-- Color.
-- Alpha.
-- Time offset. Maybe the thicker line in the back starts first.
-
-Need some sort of configurable zoom for the preview.
-
-# Fixed width mode
+## Fixed width mode
 
 I tried the result of this program in CapCut.
 It worked.
@@ -69,9 +57,23 @@ Minimum GUI:
   - Some things might get cut off.
   - Or the current behavior: size of the text + the margin.
 
-# i, j, t and x
+## i, j, t and x
 
 It would be amazing if we saved the dots and crosses until the end of the word.
 More like a real human.
 Seems very reasonable, especially since I already have a function for parsing one **word** at a time.
 Only for the cursive font.
+
+## Zoom
+
+Need some sort of configurable zoom for the preview.
+
+There are a few warnings in the code.
+I should be able to zoom the canvas just by using css to change the size of the canvas.
+But that might break the background, which should **not** resize when you zoom the image.
+
+Also, when we zoom do we keep the pixelated feel?
+That might be useful for debugging, so you can see exactly what you are getting.
+However, it would be more realistic and it would look better if we used the default scaling, not the pixelated scaling.
+
+When I tried this in the past I found that there is only one css property for setting the pixelated feel, and I've got it set to on or the background will fall apart, but that forces it to be on for normal scaling.
