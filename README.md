@@ -3,6 +3,9 @@
 ![Sample of the handwriting effect](./for_readme/Handwriting_Sample.gif)
 The handwriting effect draws text on the screen as if you were writing with a pencil.
 
+This is completely free.
+You do **not** need Adobe After Effects to create a handwriting effect.
+
 ## Goal
 
 Create bespoke animations in a web app.
@@ -83,3 +86,24 @@ That might be useful for debugging, so you can see exactly what you are getting.
 However, it would be more realistic and it would look better if we used the default scaling, not the pixelated scaling.
 
 When I tried this in the past I found that there is only one css property for setting the pixelated feel, and I've got it set to on or the background will fall apart, but that forces it to be on for normal scaling.
+
+## Animated GIFs?
+
+We could output an animated GIF instead of an MOV file.
+
+I manually converted the current output from this program into a GIF file for the sample at the top of this page.
+It was a pain to configure `ffmpeg` but the results were perfect.
+I added a black background to the sample shown above.
+However, I also created a version with a transparent background.
+That also gave excellent results, despite the fact that GIF doesn't support _partial_ transparency.
+
+So we would need an input to select between animated GIF and MOV.
+And, when in animated GIF mode you'd need to pick a background color.
+That includes the normal html color picker and an option for a completely transparent background.
+And an option to say how long to freeze at the end before repeating.
+
+Initially I thought this was a silly idea, but I'm actually using an animated GIF, above.
+Clearly it's got value.
+I don't think we need any more options.
+Use prores & MOV for things to be added into another video.
+Use an animated GIF for "simple" things like embedding in markdown.
