@@ -8,7 +8,7 @@ You do **not** need Adobe After Effects to create a handwriting effect.
 
 ## Goal
 
-Create bespoke animations in a web app.
+Create bespoke text animations in a web app.
 Save them as videos with transparent backgrounds.
 
 This will let anyone create a handwriting effect to add to their own videos.
@@ -21,14 +21,43 @@ I've tested the results in CapCut.
 I've run it a lot to shake out the obvious bugs.
 
 It could be useful to someone now.
-But I want to add the fixed width mode and the second line before I seriously ask anyone to use this software.
+I'm very close to the first release.
 
-## Second Line
+I want to take a closer look at the the fixed width mode.
+More to the point, I want to try my current output more, and see how well it works.
 
-I need a way to draw two copies of the text.
+Notice a lot of TODO items here and in comments in the code.
 
-The GUI exists.
-Now I have to implement it!
+## Configure Width / Word-Wrap
+
+I need a way to configure the width.
+
+The underlying software can have the width set to infinity.
+That effectively disables word-wrap.
+
+If you ask for the width of the text, the current code will tell you:
+
+- The width you requested, if that was finite.
+- Otherwise, the actual width of the longest line.
+
+GUI:
+
+- A check box labeled "Word wrap at:"
+- A numerical input for the width, in pixels.
+- The value should be finite number greater than 0.
+- If the check box is unchecked, the width is `Infinity`.
+
+## The opacity thing
+
+My logic for drawing the handwriting effect does not work correctly with alpha.
+
+Example: Look at "1" in the "standard" font.
+Notice where the vertical and horizontal lines overlap.
+To make the handwriting effect work, I break those segments up and stroke them separately.
+That works fine for opaque strokes.
+But making two overlapping strokes at 50% alpha will effectively paint the overlapping area the same color but at 75% alpha.
+
+The alpha should be applied to the entire layer at once.
 
 ## Fixed width mode
 

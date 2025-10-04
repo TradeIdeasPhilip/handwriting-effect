@@ -2,6 +2,7 @@ import {
   assertClass,
   assertNonNullable,
   count,
+  makeLinear,
   makePromise,
   parseFloatX,
   radiansPerDegree,
@@ -22,16 +23,32 @@ import { Font } from "./glib/letters-base";
 const previewCanvas = getById("preview", HTMLCanvasElement);
 const context = assertNonNullable(previewCanvas.getContext("2d"));
 
-let inProgress: {
-  totalLength: number;
-  drawTo: (length: number, context: CanvasRenderingContext2D) => void;
-} = { totalLength: 0, drawTo(length, context) {} };
+// TODO add new example button:
+// "Fill in"
+// Big bottom stroke, 3x the size of the top stroke.
+// Red looked good on bottom with White on top.
+// x offset == 0, y offset == 0
+// Delay = -1
+// Maybe the delay should be smarter:
+// Ultimately we want a fixed amount of **distance** between the back and the front.
+// That's probably proportional to the font size.
+// Then do the algebra to say the delay in seconds.
+// We know the total length of the text and the requested duration, that should be enough.
+// This works pretty well with 2 letters, and we should try to keep that distance for any amount of text.
+
+/**
+ * Update the animation to a specific point in time.
+ * @param progress 0 for the start, 1 for the end.
+ * @param context Draw here.  Start by clearing what was already there.
+ */
+let drawProgress = (progress: number) => {
+  console.warn("Not ready yet.");
+};
 
 function* getImages(count: number) {
   for (let n = 0; n < count; n++) {
-    const where = n / (count - 1);
-    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    inProgress.drawTo(where * inProgress.totalLength, context);
+    const progress = n / (count - 1);
+    drawProgress(progress);
     const promise = makePromise<Blob>();
     previewCanvas.toBlob((blob) => {
       if (blob) {
@@ -177,7 +194,8 @@ async function createVideo() {
       new Uint8Array(await (await blob).arrayBuffer())
     );
   }
-  // I need a transparent background, so I have to pick pro res and pixel format.
+  // I need a transparent background, so I have to pick pro res and specific pixel format.
+  // (Actually, animated GIFs have transparency and I've had good luck with that format.)
   const status = await ffmpeg.exec([
     "-framerate",
     "30",
@@ -236,6 +254,16 @@ const bottomDelayInput = getById("delay", HTMLInputElement);
 
 const backgroundColorInput = getById("backgroundColor", HTMLInputElement);
 
+/**
+ * This stores the current state of the GUI in the URL's hash.
+ * (The part after the #.)
+ * This automatically saves the current version of what you're doing in the browser's history.
+ *
+ * This was originally aimed at end users.
+ * But it is hugely helpful when developing code with Vite.
+ * Each time I save my code in VS code, Vite restarts my code, and this class restores the current state of the program.
+ * It's like I'm editing code while the program is still running.
+ */
 class Hash {
   static #simpleValueElements: Pick<
     HTMLInputElement,
@@ -246,6 +274,13 @@ class Hash {
     strokeColorInput,
     lineWidthInput,
     backgroundColorInput,
+    showBottomLineCheckbox,
+    bottomLineWidthInput,
+    bottomStrokeColorInput,
+    bottomAlphaInput,
+    bottomXOffsetInput,
+    bottomYOffsetInput,
+    bottomDelayInput,
   ];
   static #radioGroups: readonly string[] = ["alignment", "fontFamily"];
   static read() {
@@ -285,6 +320,10 @@ class Hash {
     });
     location.replace("#" + parameters.toString());
   }
+  /**
+   * This is required.
+   * When I tried updating the hash immediately, that causes lots of errors and warnings in the console.
+   */
   static readonly writeSoon = new EventBuffer(50, true, () => this.#write())
     .request;
   static init() {
@@ -336,11 +375,12 @@ function updateSample() {
     ).forEach(([value, element]) => {
       element.style.backgroundColor = value === undefined ? "pink" : "";
     });
+    const showBottomLine = showBottomLineCheckbox.checked;
     if (
       fontSize === undefined ||
       lineWidth === undefined ||
       duration === undefined ||
-      (showBottomLineCheckbox.checked &&
+      (showBottomLine &&
         (bottomLineWidth === undefined ||
           bottomXOffset === undefined ||
           bottomYOffset === undefined ||
@@ -393,17 +433,9 @@ function updateSample() {
      */
     const margin = (font.bottom - font.top) / 2;
     previewCanvas.width = width + 2 * margin;
-    previewCanvas.height =
-      (laidOut.allRowMetrics.at(-1)?.bottom ?? 0) + 2 * margin;
+    previewCanvas.height = laidOut.height + 2 * margin;
     previewCanvas.style.width = `${previewCanvas.width / devicePixelRatio}px`;
     previewCanvas.style.height = `${previewCanvas.height / devicePixelRatio}px`;
-    context.strokeStyle = strokeColorInput.value;
-    context.lineWidth = lineWidth;
-    //laidOut.drawAll(context, margin, margin);
-    inProgress = laidOut.drawPartial(margin, margin);
-    lengthSpan.innerText = inProgress.totalLength.toLocaleString(undefined, {
-      maximumFractionDigits: 2,
-    });
     if (duration === undefined || bottomDelay === undefined) {
       totalTimeSpan.innerText = "???";
     } else {
@@ -425,10 +457,10 @@ function updateSample() {
     simpleOutlineButton.disabled = false;
     const angle = 60 * radiansPerDegree;
     doBigShadowButton = () => {
-      const r = lineWidth * 0.8;
+      const r = lineWidth * 1;
       const x = Math.cos(angle) * r;
       const y = Math.sin(angle) * r;
-      const width = lineWidth * 1.1;
+      const width = lineWidth * (4 / 3);
       bottomLineWidthInput.value = width.toString();
       bottomAlphaInput.value = "0.5";
       bottomStrokeColorInput.value = "#000000";
@@ -440,10 +472,10 @@ function updateSample() {
     bigShadowButton.disabled = false;
     doExtrudedButton = () => {
       // https://github.com/TradeIdeasPhilip/random-svg-tests/blob/fdea849397ac10586c01d0d5694b00aed6bc5d85/src/fourier-smackdown.css#L197
-      const r = lineWidth / 3;
+      const r = lineWidth;
       const x = Math.cos(angle) * r;
       const y = Math.sin(angle) * r;
-      const width = lineWidth / 3;
+      const width = lineWidth * 3;
       bottomLineWidthInput.value = width.toString();
       bottomAlphaInput.value = "1";
       bottomStrokeColorInput.value = "#ff0894";
@@ -453,10 +485,79 @@ function updateSample() {
       updateSample();
     };
     extrudedButton.disabled = false;
-    inProgress.drawTo(
-      progressInput.valueAsNumber * inProgress.totalLength,
-      context
-    );
+    const mainStrokeColor = strokeColorInput.value;
+    /**
+     * Use this to draw the text at a particular frame.
+     *
+     * This only describes one copy of the text.
+     * If we are drawing _two_ copies of the text, call this _twice_!
+     */
+    const inProgress = laidOut.drawPartial(margin, margin);
+    lengthSpan.innerText = inProgress.totalLength.toLocaleString(undefined, {
+      maximumFractionDigits: 2,
+    });
+    if (showBottomLine) {
+      if (
+        bottomDelay === undefined ||
+        bottomLineWidth === undefined ||
+        bottomXOffset === undefined ||
+        bottomYOffset === undefined
+      ) {
+        throw new Error("wtf");
+      }
+      const bottomStrokeColor = bottomStrokeColorInput.value;
+      const bottomAlpha = bottomAlphaInput.valueAsNumber;
+      let topStart: number;
+      let bottomStart: number;
+      let topEnd: number;
+      let bottomEnd: number;
+      if (bottomDelay >= 0) {
+        const totalDuration = duration + bottomDelay;
+        topStart = 0;
+        bottomStart = bottomDelay / totalDuration;
+        topEnd = duration / totalDuration;
+        bottomEnd = 1;
+      } else {
+        const totalDuration = duration - bottomDelay;
+        topStart = -bottomDelay / totalDuration;
+        bottomStart = 0;
+        topEnd = 1;
+        bottomEnd = duration / totalDuration;
+      }
+      const progressTop = makeLinear(
+        topStart,
+        0,
+        topEnd,
+        inProgress.totalLength
+      );
+      const progressBottom = makeLinear(
+        bottomStart,
+        0,
+        bottomEnd,
+        inProgress.totalLength
+      );
+      drawProgress = (progress: number) => {
+        previewCanvas.width = previewCanvas.width;
+        context.translate(bottomXOffset, bottomYOffset);
+        context.globalAlpha = bottomAlpha;
+        context.strokeStyle = bottomStrokeColor;
+        context.lineWidth = bottomLineWidth;
+        inProgress.drawTo(progressBottom(progress), context);
+        context.resetTransform();
+        context.globalAlpha = 1;
+        context.strokeStyle = mainStrokeColor;
+        context.lineWidth = lineWidth;
+        inProgress.drawTo(progressTop(progress), context);
+      };
+    } else {
+      drawProgress = (progress: number) => {
+        previewCanvas.width = previewCanvas.width;
+        context.strokeStyle = mainStrokeColor;
+        context.lineWidth = lineWidth;
+        inProgress.drawTo(progress * inProgress.totalLength, context);
+      };
+    }
+    drawProgress(progressInput.valueAsNumber);
   } catch (reason: unknown) {
     errorDiv.style.display = "";
     console.error(reason);

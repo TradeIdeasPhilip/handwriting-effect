@@ -245,6 +245,14 @@ export class ParagraphLayout {
         }
       }
     }
+    /**
+     * This will stroke **all** of the text
+     *
+     * Be sure to set the `strokeStyle` and `lineWidth` of the context before calling this.
+     * @param context Where to draw.
+     * @param left Where to start drawing.  The default of 0 leaves no margin.
+     * @param top Where to start drawing.  The default of 0 leaves no margin.
+     */
     function drawAll(context: CanvasRenderingContext2D, left = 0, top = 0) {
       context.lineCap = "round";
       context.lineJoin = "round";
@@ -253,6 +261,12 @@ export class ParagraphLayout {
         context.stroke(path);
       }
     }
+    /**
+     * Create a function that will let you draw the animation at a given state.
+     * @param left Where to start drawing.  The default of 0 leaves no margin.
+     * @param top Where to start drawing.  The default of 0 leaves no margin.
+     * @returns
+     */
     function drawPartial(left = 0, top = 0) {
       let start = 0;
       const allShapeInfo = [...getAllLetters(left, top)]
@@ -287,6 +301,15 @@ export class ParagraphLayout {
       }
       return { totalLength, drawTo };
     }
-    return { width, words, allRowMetrics, getAllLetters, drawAll, drawPartial };
+    const height = allRowMetrics.at(-1)?.bottom ?? 0;
+    return {
+      height,
+      width,
+      words,
+      allRowMetrics,
+      getAllLetters,
+      drawAll,
+      drawPartial,
+    };
   }
 }
