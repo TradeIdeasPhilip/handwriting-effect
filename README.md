@@ -47,18 +47,6 @@ GUI:
 - The value should be finite number greater than 0.
 - If the check box is unchecked, the width is `Infinity`.
 
-## The opacity thing
-
-My logic for drawing the handwriting effect does not work correctly with alpha.
-
-Example: Look at "1" in the "standard" font.
-Notice where the vertical and horizontal lines overlap.
-To make the handwriting effect work, I break those segments up and stroke them separately.
-That works fine for opaque strokes.
-But making two overlapping strokes at 50% alpha will effectively paint the overlapping area the same color but at 75% alpha.
-
-The alpha should be applied to the entire layer at once.
-
 ## Fixed width mode
 
 I tried the result of this program in CapCut.

@@ -20,8 +20,35 @@ import { LineFontMetrics, makeLineFont } from "./glib/line-font";
 import { EventBuffer } from "./util";
 import { Font } from "./glib/letters-base";
 
+/**
+ * This is where I display things for the user to see them.
+ *
+ * This is also where I build the images to create the video.
+ */
 const previewCanvas = getById("preview", HTMLCanvasElement);
+
+/**
+ * This is where I display things for the user to see them.
+ *
+ * This is also where I build the images to create the video.
+ */
 const context = assertNonNullable(previewCanvas.getContext("2d"));
+
+/**
+ * This is used for working with images while updating the `previewCanvas`.
+ *
+ * Nothing interesting is saved on this between uses.
+ * I just didn't want to create a new one every time.
+ */
+const alphaCanvas = document.createElement("canvas");
+
+/**
+ * This is used for working with images while updating the `previewCanvas`.
+ *
+ * Nothing interesting is saved on this between uses.
+ * I just didn't want to create a new one every time.
+ */
+const alphaCanvasContext = assertNonNullable(alphaCanvas.getContext("2d"));
 
 // TODO add new example button:
 // "Fill in"
@@ -536,21 +563,29 @@ function updateSample() {
         bottomEnd,
         inProgress.totalLength
       );
-      drawProgress = (progress: number) => {
+      drawProgress = function drawBothLines(progress: number) {
+        // First, draw the bottom layer completely opaque.
+        alphaCanvas.width = previewCanvas.width;
+        alphaCanvas.height = previewCanvas.height;
+        alphaCanvasContext.translate(bottomXOffset, bottomYOffset);
+        alphaCanvasContext.strokeStyle = bottomStrokeColor;
+        alphaCanvasContext.lineWidth = bottomLineWidth;
+        inProgress.drawTo(progressBottom(progress), alphaCanvasContext);
+        // Clear the previewCanvas
         previewCanvas.width = previewCanvas.width;
-        context.translate(bottomXOffset, bottomYOffset);
+        // Copy the entire bottom layer at once, adding alpha at this time.
+        // If I tried to add alpha to the individual strokes, the result would not look right.
+        // Any time two partially transparent strokes overlap, the result is less transparent than it should be.
         context.globalAlpha = bottomAlpha;
-        context.strokeStyle = bottomStrokeColor;
-        context.lineWidth = bottomLineWidth;
-        inProgress.drawTo(progressBottom(progress), context);
-        context.resetTransform();
+        context.drawImage(alphaCanvas, 0, 0);
+        // Draw the top layer like normal.
         context.globalAlpha = 1;
         context.strokeStyle = mainStrokeColor;
         context.lineWidth = lineWidth;
         inProgress.drawTo(progressTop(progress), context);
       };
     } else {
-      drawProgress = (progress: number) => {
+      drawProgress = function drawOnlyTopLine(progress: number) {
         previewCanvas.width = previewCanvas.width;
         context.strokeStyle = mainStrokeColor;
         context.lineWidth = lineWidth;
@@ -626,21 +661,6 @@ backgroundColorInput.addEventListener("input", () => updateBackground());
 
 /**
  * TODO
- *
- * Import the Hershey fonts.
- * Fix the question marks.
- *
- * Multiple layers
- * - You should be able to add or remove a second layer with a single checkbox.
- * - It has its own color and width.
- * - The bottom layer is the optional one.
- * - The font is generated based on the larger line width.
- *
- * Animation for handwriting:
- * Use the slider to draw it at a specific position.
- * And some way to do a realtime animation.
- * This animation does not repeat.
- * In our sample animation, just stop at the end.
  *
  * Second animation option:
  *
