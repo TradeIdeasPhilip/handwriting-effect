@@ -9,7 +9,7 @@ import {
   zip,
 } from "phil-lib/misc";
 import "./style.css";
-import { getById, selectorQuery, selectorQueryAll } from "phil-lib/client-misc";
+import { getById, querySelector, querySelectorAll } from "phil-lib/client-misc";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 
 // https://github.com/ffmpegwasm/ffmpeg.wasm/issues/532#issuecomment-2014126657
@@ -268,7 +268,7 @@ const recommendedLineWidthButton = getById(
   "recommendedLineWidth",
   HTMLButtonElement
 );
-const showBottomLineCheckbox = selectorQuery(
+const showBottomLineCheckbox = querySelector(
   'input[name="showBottomLine"]',
   HTMLInputElement
 );
@@ -321,7 +321,7 @@ class Hash {
     this.#radioGroups.forEach((name) => {
       const requested = parameters.get(name);
       if (typeof requested === "string") {
-        const elements = selectorQueryAll(
+        const elements = querySelectorAll(
           `input[type="radio"][name="${name}"][value="${requested}"]`,
           HTMLInputElement
         );
@@ -339,7 +339,7 @@ class Hash {
       parameters.append(element.id, element.value);
     });
     this.#radioGroups.forEach((name) => {
-      const value = selectorQuery(
+      const value = querySelector(
         `input[type="radio"][name="${name}"]:checked`,
         HTMLInputElement
       ).value;
@@ -356,7 +356,7 @@ class Hash {
   static init() {
     this.#simpleValueElements.forEach((element) => {
       element.addEventListener("input", this.writeSoon);
-      selectorQueryAll('input[type="radio"]', HTMLInputElement).forEach(
+      querySelectorAll('input[type="radio"]', HTMLInputElement).forEach(
         (element) => element.addEventListener("input", this.writeSoon)
       );
     });
@@ -418,7 +418,7 @@ function updateSample() {
       return;
     }
     CreateVideoButton.configError = false;
-    const fontFamily = selectorQuery(
+    const fontFamily = querySelector(
       'input[type="radio"][name="fontFamily"]:checked',
       HTMLInputElement
     ).value;
@@ -449,7 +449,7 @@ function updateSample() {
     )} pixels`;
     const layout = new ParagraphLayout(font);
     layout.addText(textTextArea.value);
-    const alignment = selectorQuery(
+    const alignment = querySelector(
       'input[type="radio"][name="alignment"]:checked',
       HTMLInputElement
     ).value;
@@ -600,7 +600,7 @@ function updateSample() {
 }
 Hash.read();
 updateSample();
-[textTextArea, ...selectorQueryAll("input", HTMLInputElement)].forEach(
+[textTextArea, ...querySelectorAll("input", HTMLInputElement)].forEach(
   (element) => {
     element.addEventListener("input", updateSample);
   }

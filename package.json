@@ -21,6 +21,6 @@
     "bezier-js": "^6.1.4",
     "normalize-svg-path": "^1.1.0",
     "parse-svg-path": "^0.1.2",
-    "phil-lib": "^1.6.0"
+    "phil-lib": "^1.7.0"
   }
 }
