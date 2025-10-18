@@ -6,6 +6,8 @@ The handwriting effect draws text on the screen as if you were writing with a pe
 This is completely free.
 You do **not** need Adobe After Effects to create a handwriting effect.
 
+More samples: https://youtu.be/HW5hnXj2zAs
+
 ## Goal
 
 Create bespoke text animations in a web app.
